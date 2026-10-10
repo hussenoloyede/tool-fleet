@@ -1,0 +1,17 @@
+<Project>
+  <!-- Settings shared by every project in the repo. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    Warnings show locally but fail the build in CI. TF_BUILD is set by Azure Pipelines,
+    CI by GitHub Actions and most other runners.
+  -->
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true' or '$(CI)' == 'true'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

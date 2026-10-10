@@ -1,0 +1,39 @@
+// Placeholder tokens. Replace these with your own design system in week 2.
+:root {
+  color-scheme: light dark;
+  --bg: #f7f8fa;
+  --text: #16181d;
+  --muted: #5b6270;
+  --line: #dde1e7;
+  --bar: #0f2a3f;
+  --bar-text: #ffffff;
+  --ok: #17663a;
+  --ok-bg: #dcf3e5;
+  --warn: #7a4b00;
+  --warn-bg: #fdecc8;
+  --danger: #a3122a;
+  --danger-bg: #fbdde2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111418;
+    --text: #e8eaee;
+    --muted: #9aa3b2;
+    --line: #2a3038;
+    --bar: #0a1c2b;
+    --ok: #7fdca4;
+    --ok-bg: #12301f;
+    --warn: #f5c76b;
+    --warn-bg: #3a2a07;
+    --danger: #ff8a9b;
+    --danger-bg: #3d1119;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}

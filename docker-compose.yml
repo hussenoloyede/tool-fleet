@@ -1,0 +1,23 @@
+# Local SQL Server for development. Azure SQL in the cloud speaks the same dialect,
+# so code and migrations tested here behave the same there.
+#   docker compose up -d
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64 # runs under emulation on Apple Silicon
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      # Local-only password, matches appsettings.Development.json. Never reuse it in Azure.
+      MSSQL_SA_PASSWORD: "ToolFleet_Dev_2026!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+
+volumes:
+  sqldata:

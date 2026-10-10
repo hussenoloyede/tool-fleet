@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ToolFleet.Api/ToolFleet.Api.csproj" />
+    <Project Path="src/ToolFleet.Domain/ToolFleet.Domain.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ToolFleet.Api.Tests/ToolFleet.Api.Tests.csproj" />
+    <Project Path="tests/ToolFleet.Domain.Tests/ToolFleet.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

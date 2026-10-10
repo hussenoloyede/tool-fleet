@@ -1,0 +1,110 @@
+# Azure DevOps pipeline: runs on every push and pull request to main.
+# Stage 1 builds and tests the API and the Angular app in parallel and publishes both as artifacts.
+# A deploy stage (Azure App Service + Azure SQL) comes in week 3; see the commented stub at the bottom.
+
+trigger:
+  branches:
+    include: [main]
+
+pr:
+  branches:
+    include: [main]
+
+variables:
+  buildConfiguration: Release
+
+stages:
+  - stage: Build
+    displayName: Build and test
+    jobs:
+      - job: Api
+        displayName: API (.NET)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: UseDotNet@2
+            displayName: Install .NET SDK from global.json
+            inputs:
+              useGlobalJson: true
+
+          - script: dotnet restore
+            displayName: Restore
+
+          - script: dotnet build --no-restore --configuration $(buildConfiguration)
+            displayName: Build (warnings are errors in CI)
+
+          - script: >
+              dotnet test --no-build --configuration $(buildConfiguration)
+              --logger trx
+              --results-directory $(Agent.TempDirectory)/TestResults
+              --collect "XPlat Code Coverage"
+            displayName: Test
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: VSTest
+              testResultsFiles: "**/*.trx"
+              searchFolder: $(Agent.TempDirectory)/TestResults
+
+          - task: PublishCodeCoverageResults@2
+            displayName: Publish code coverage
+            condition: succeededOrFailed()
+            inputs:
+              summaryFileLocation: $(Agent.TempDirectory)/TestResults/**/coverage.cobertura.xml
+
+          - script: >
+              dotnet publish src/ToolFleet.Api --no-build --configuration $(buildConfiguration)
+              --output $(Build.ArtifactStagingDirectory)/api
+            displayName: Publish API
+
+          - publish: $(Build.ArtifactStagingDirectory)/api
+            artifact: api
+            displayName: Upload API artifact
+
+      - job: Web
+        displayName: Web (Angular)
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - task: UseNode@1
+            displayName: Install Node 24
+            inputs:
+              version: 24.x
+
+          - script: npm ci
+            displayName: Install packages
+            workingDirectory: web
+
+          - script: npm test -- --watch=false
+            displayName: Test
+            workingDirectory: web
+
+          - script: npm run build
+            displayName: Build
+            workingDirectory: web
+
+          - publish: web/dist/web/browser
+            artifact: web
+            displayName: Upload web artifact
+
+# Week 3: uncomment once the Azure resources and service connection exist.
+#
+#  - stage: Deploy
+#    dependsOn: Build
+#    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+#    jobs:
+#      - deployment: Api
+#        environment: production
+#        pool:
+#          vmImage: ubuntu-latest
+#        strategy:
+#          runOnce:
+#            deploy:
+#              steps:
+#                - task: AzureWebApp@1
+#                  inputs:
+#                    azureSubscription: toolfleet-azure   # service connection name
+#                    appName: toolfleet-api-<your-suffix>
+#                    package: $(Pipeline.Workspace)/api

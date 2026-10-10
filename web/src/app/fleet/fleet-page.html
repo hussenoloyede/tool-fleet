@@ -1,0 +1,52 @@
+<section>
+  <header class="page-header">
+    <h1>Fleet</h1>
+    @if (tools.hasValue()) {
+      <p class="summary">
+        {{ tools.value().length }} tools
+        @if (overdueCount() > 0) {
+          · <span class="overdue-count">{{ overdueCount() }} overdue for calibration</span>
+        }
+      </p>
+    }
+  </header>
+
+  @if (tools.isLoading()) {
+    <p>Loading tools…</p>
+  } @else if (tools.error()) {
+    <p class="error" role="alert">
+      Couldn't reach the API. Is it running on http://localhost:5080?
+    </p>
+  } @else if (tools.hasValue()) {
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Serial</th>
+          <th scope="col">Model</th>
+          <th scope="col">Location</th>
+          <th scope="col">Firmware</th>
+          <th scope="col">Calibration due</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (tool of tools.value(); track tool.id) {
+          <tr>
+            <td class="mono">{{ tool.serialNumber }}</td>
+            <td>{{ tool.model }}</td>
+            <td>{{ tool.locationName }}</td>
+            <td class="mono">{{ tool.firmwareVersion }}</td>
+            <td>{{ tool.calibrationDueOn }}</td>
+            <td>
+              <span class="status" [attr.data-status]="tool.calibrationStatus">
+                {{ statusLabel[tool.calibrationStatus] }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6">No tools registered yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

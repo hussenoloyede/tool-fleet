@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure C#: no EF Core, no ASP.NET. Business rules live here so they can be unit tested in isolation. -->
+</Project>

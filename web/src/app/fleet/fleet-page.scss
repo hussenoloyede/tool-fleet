@@ -1,0 +1,64 @@
+.page-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.summary {
+  color: var(--muted);
+}
+
+.overdue-count {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.error {
+  color: var(--danger);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &[data-status='Ok'] {
+    background: var(--ok-bg);
+    color: var(--ok);
+  }
+  &[data-status='DueSoon'] {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+  &[data-status='Overdue'] {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+}
