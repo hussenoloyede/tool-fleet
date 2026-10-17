@@ -1,0 +1,68 @@
+<div class="page-head">
+  <div>
+    <h1>Audit log</h1>
+    <p>Every change, who made it and when. Entries are written in the same database transaction as the change itself.</p>
+  </div>
+  <label class="field">
+    Show
+    <select [value]="entityType()" (change)="entityType.set($any($event.target).value)">
+      <option value="">Everything</option>
+      @for (t of entityTypes; track t[0]) {
+        <option [value]="t[0]">{{ t[1] }}s</option>
+      }
+    </select>
+  </label>
+</div>
+
+@if (entries.error()) {
+  <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+} @else if (entries.hasValue()) {
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th scope="col">When (UTC)</th>
+          <th scope="col">Who</th>
+          <th scope="col">What</th>
+          <th scope="col">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.entry.id) {
+          <tr>
+            <td class="nowrap">{{ time(row.entry.atUtc) }}</td>
+            <td>{{ row.entry.actor }}</td>
+            <td class="nowrap">
+              {{ actionLabel[row.entry.action] }}
+              @if (row.entry.entityType === 'Rollout') {
+                <a [routerLink]="['/rollouts', row.entry.entityId]">rollout</a>
+              } @else {
+                {{ (entityLabel[row.entry.entityType] ?? row.entry.entityType).toLowerCase() }}
+              }
+            </td>
+            <td>
+              <ul class="changes">
+                @for (line of row.lines; track line.field) {
+                  <li>
+                    <span class="field-name">{{ line.field }}</span>
+                    @if (line.from !== undefined) {
+                      <span class="from">{{ line.from }}</span><span class="arrow" aria-label="changed to">→</span>
+                    }
+                    <span class="to">{{ line.to }}</span>
+                  </li>
+                }
+              </ul>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="4">Nothing recorded yet.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (entries.value().length === take()) {
+    <button type="button" class="btn more" (click)="take.set(take() + 100)">Show older entries</button>
+  }
+} @else {
+  <p class="muted">Loading the audit log…</p>
+}

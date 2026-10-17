@@ -1,0 +1,46 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (max-width: 52rem) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.model + .model {
+  margin-top: 1.5rem;
+}
+
+.model h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.count {
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 0.95rem;
+  margin-left: 0.4rem;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.actions {
+  text-align: right;
+}
+
+.publish form {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.published {
+  margin: 1rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}

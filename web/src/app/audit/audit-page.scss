@@ -1,0 +1,39 @@
+.page-head .field {
+  min-width: 12rem;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.field-name {
+  color: var(--muted);
+  margin-right: 0.4rem;
+}
+
+.from {
+  text-decoration: line-through;
+  text-decoration-color: var(--line-strong);
+  color: var(--muted);
+}
+
+.arrow {
+  margin: 0 0.4rem;
+  color: var(--muted);
+}
+
+.to {
+  font-weight: 600;
+}
+
+.more {
+  margin-top: 1rem;
+}

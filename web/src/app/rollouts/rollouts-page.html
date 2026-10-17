@@ -1,0 +1,107 @@
+<div class="page-head">
+  <div>
+    <h1>Rollouts</h1>
+    <p>Each rollout updates a small canary group first and waits for your approval before the rest.</p>
+  </div>
+</div>
+
+<div class="layout">
+  <section aria-label="All rollouts">
+    @if (rollouts.error()) {
+      <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+    } @else if (rollouts.hasValue()) {
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr>
+              <th scope="col">Firmware</th>
+              <th scope="col">Status</th>
+              <th scope="col">Canary</th>
+              <th scope="col">Rest of fleet</th>
+              <th scope="col">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of rollouts.value(); track r.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/rollouts', r.id]" class="rollout-link">
+                    {{ r.model }} <span class="code">{{ r.targetVersion }}</span>
+                  </a>
+                </td>
+                <td><app-rollout-status-chip [status]="r.status" /></td>
+                <td><app-stage-bar [progress]="r.canary" /></td>
+                <td><app-stage-bar [progress]="r.full" /></td>
+                <td class="nowrap">{{ r.createdAtUtc.slice(0, 16).replace('T', ' ') }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5">No rollouts yet. Pick a firmware build on the right to start one.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="muted">Loading rollouts…</p>
+    }
+  </section>
+
+  <section class="panel" aria-labelledby="new-heading">
+    <h2 id="new-heading">New rollout</h2>
+
+    <form [formGroup]="form" (ngSubmit)="create()" novalidate>
+      <label class="field">
+        Firmware build
+        <select formControlName="firmwareReleaseId">
+          <option value="" disabled>Choose a build</option>
+          @if (releases.hasValue()) {
+            @for (r of releases.value(); track r.id) {
+              <option [value]="r.id">{{ releaseLabel(r) }}</option>
+            }
+          }
+        </select>
+        @if (form.controls.firmwareReleaseId.touched && form.controls.firmwareReleaseId.invalid) {
+          <span class="error">Choose a firmware build.</span>
+        }
+      </label>
+
+      <div class="pair">
+        <label class="field">
+          Canary size
+          <span class="with-unit"><input type="number" formControlName="canaryPercent" min="1" max="50" />%</span>
+          <span class="hint">of the tools that need it</span>
+        </label>
+        <label class="field">
+          Halt above
+          <span class="with-unit"><input type="number" formControlName="failureThresholdPercent" min="0" max="100" />%</span>
+          <span class="hint">failures in a stage</span>
+        </label>
+      </div>
+
+      @if (preview(); as p) {
+        <div class="preview" role="status">
+          @if (p.blocked) {
+            <p class="error">{{ p.release.model }} already has a rollout in progress. Finish or abort it first.</p>
+          } @else if (p.eligible === 0) {
+            <p>Every {{ p.release.model }} is already on {{ p.release.version }}.</p>
+          } @else {
+            <p>
+              <strong>{{ p.eligible }}</strong> {{ p.release.model }} tools need {{ p.release.version }}.
+              <strong>{{ p.canary }}</strong> go first, then <strong>{{ p.full }}</strong> after you approve.
+            </p>
+          }
+        </div>
+      }
+
+      @if (createError()) {
+        <p class="error" role="alert">{{ createError() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary" [disabled]="saving() || preview()?.blocked || preview()?.eligible === 0">
+        {{ saving() ? 'Creating…' : 'Create rollout' }}
+      </button>
+      <p class="hint muted">It starts as a draft. Nothing is flashed until you press Start.</p>
+    </form>
+  </section>
+</div>

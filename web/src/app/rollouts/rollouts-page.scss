@@ -1,0 +1,57 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 21rem;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (max-width: 56rem) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rollout-link {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+form {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.with-unit {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 400;
+
+  input {
+    width: 100%;
+  }
+}
+
+.preview {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+
+  p {
+    margin: 0;
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+}

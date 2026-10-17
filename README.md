@@ -2,11 +2,9 @@
 
 Track downhole tools across field bases and roll out firmware in stages: a small canary group first, an automatic halt if too many fail, and a human sign-off before the rest of the fleet updates. Every change lands in an audit log.
 
-<!-- Replace with a GIF of the demo story once the UI exists (week 4). -->
-![Screenshot placeholder](docs/screenshot.png)
+> Work in progress. The full demo runs locally: publish a build, run a canary, watch it halt or approve the rest, and read the audit log. Deployment to Azure is next. See the [MVP scope](docs/mvp-scope.md) for the plan.
 
-[Live demo](#) · [MVP scope](docs/mvp-scope.md)
-<!-- CI badge: Azure DevOps > Pipelines > ... > Status badge, paste the Markdown here. -->
+<!-- TODO week 4: add a GIF of the demo, the live demo link and the Azure DevOps status badge here. -->
 
 ## Architecture
 
@@ -60,7 +58,15 @@ No Docker? Run the API with SQLite instead: `dotnet run --project src/ToolFleet.
 
 The OpenAPI description is at `http://localhost:5080/openapi/v1.json` in development.
 
-### Try a rollout from the terminal
+### Try a rollout in the browser
+
+1. Firmware: publish `4.2.0` for the MWD Pulser, then press Roll out.
+2. New rollout: keep 10% canary and a 20% halt threshold, then Create rollout.
+3. On the rollout page press Start rollout, then Report canary results. The field simulator plays the part of the tools. Drag the failure chance up to watch it halt.
+4. If the canary passes, Approve rest of fleet and report again.
+5. Audit log shows every change.
+
+### Or from the terminal
 
 ```bash
 # publish firmware 4.2.0 for the MWD Pulser model

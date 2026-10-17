@@ -1,52 +1,115 @@
-<section>
-  <header class="page-header">
+<div class="page-head">
+  <div>
     <h1>Fleet</h1>
-    @if (tools.hasValue()) {
-      <p class="summary">
-        {{ tools.value().length }} tools
+    @if (allTools.hasValue()) {
+      <p>
+        {{ totalCount() }} tools across {{ locations.hasValue() ? locations.value().length : '' }} bases.
         @if (overdueCount() > 0) {
-          · <span class="overdue-count">{{ overdueCount() }} overdue for calibration</span>
+          <button type="button" class="link-btn error" (click)="showOverdue()">
+            {{ overdueCount() }} overdue for calibration
+          </button>
         }
       </p>
     }
-  </header>
+  </div>
+</div>
 
-  @if (tools.isLoading()) {
-    <p>Loading tools…</p>
-  } @else if (tools.error()) {
-    <p class="error" role="alert">
-      Couldn't reach the API. Is it running on http://localhost:5080?
-    </p>
-  } @else if (tools.hasValue()) {
-    <table>
+<form class="filters" (submit)="$event.preventDefault()" aria-label="Filter tools">
+  <label class="field">
+    Model
+    <select [value]="model()" (change)="model.set($any($event.target).value)">
+      <option value="">All models</option>
+      @for (m of models(); track m) {
+        <option [value]="m">{{ m }}</option>
+      }
+    </select>
+  </label>
+  <label class="field">
+    Base
+    <select [value]="locationId()" (change)="locationId.set($any($event.target).value)">
+      <option value="">All bases</option>
+      @if (locations.hasValue()) {
+        @for (l of locations.value(); track l.id) {
+          <option [value]="l.id">{{ l.name }}</option>
+        }
+      }
+    </select>
+  </label>
+  <label class="field">
+    Calibration
+    <select [value]="calibration()" (change)="calibration.set($any($event.target).value)">
+      <option value="">Any</option>
+      <option value="Overdue">Overdue</option>
+      <option value="DueSoon">Due within 30 days</option>
+      <option value="Ok">OK</option>
+    </select>
+  </label>
+  @if (filtered()) {
+    <button type="button" class="btn" (click)="clearFilters()">Clear filters</button>
+  }
+</form>
+
+@if (actionError()) {
+  <p class="error" role="alert">{{ actionError() }}</p>
+}
+
+@if (tools.error()) {
+  <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+} @else if (tools.hasValue()) {
+  <div class="table-wrap">
+    <table class="data">
       <thead>
         <tr>
           <th scope="col">Serial</th>
           <th scope="col">Model</th>
-          <th scope="col">Location</th>
+          <th scope="col">Base</th>
           <th scope="col">Firmware</th>
           <th scope="col">Calibration due</th>
           <th scope="col">Status</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
         </tr>
       </thead>
       <tbody>
         @for (tool of tools.value(); track tool.id) {
           <tr>
-            <td class="mono">{{ tool.serialNumber }}</td>
+            <td class="code">{{ tool.serialNumber }}</td>
             <td>{{ tool.model }}</td>
             <td>{{ tool.locationName }}</td>
-            <td class="mono">{{ tool.firmwareVersion }}</td>
+            <td class="code">{{ tool.firmwareVersion }}</td>
             <td>{{ tool.calibrationDueOn }}</td>
             <td>
-              <span class="status" [attr.data-status]="tool.calibrationStatus">
+              <span class="chip {{ statusClass[tool.calibrationStatus] }}" [attr.data-status]="tool.calibrationStatus">
                 {{ statusLabel[tool.calibrationStatus] }}
               </span>
             </td>
+            <td class="actions">
+              @if (tool.calibrationStatus !== 'Ok') {
+                <button
+                  type="button"
+                  class="btn small"
+                  [disabled]="savingId() === tool.id"
+                  (click)="markCalibratedToday(tool)"
+                >
+                  {{ savingId() === tool.id ? 'Saving…' : 'Calibrated today' }}
+                </button>
+              }
+            </td>
           </tr>
         } @empty {
-          <tr><td colspan="6">No tools registered yet.</td></tr>
+          <tr>
+            <td colspan="7">
+              @if (filtered()) {
+                No tools match these filters.
+                <button type="button" class="link-btn" (click)="clearFilters()">Clear filters</button>
+              } @else {
+                No tools registered yet.
+              }
+            </td>
+          </tr>
         }
       </tbody>
     </table>
-  }
-</section>
+  </div>
+} @else {
+  <p class="muted">Loading tools…</p>
+}

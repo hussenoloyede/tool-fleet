@@ -1,39 +1,335 @@
-// Placeholder tokens. Replace these with your own design system in week 2.
+// ToolFleet visual tokens.
+// Rig-site vernacular: steel-blue ink on cool paper, safety yellow for "needs a person",
+// hazard tape for "stopped". Status colours are reserved for status and nothing else.
+
 :root {
-  color-scheme: light dark;
-  --bg: #f7f8fa;
-  --text: #16181d;
-  --muted: #5b6270;
-  --line: #dde1e7;
-  --bar: #0f2a3f;
-  --bar-text: #ffffff;
-  --ok: #17663a;
-  --ok-bg: #dcf3e5;
-  --warn: #7a4b00;
-  --warn-bg: #fdecc8;
-  --danger: #a3122a;
-  --danger-bg: #fbdde2;
+  color-scheme: light;
+  --paper: #eef1f3;
+  --surface: #ffffff;
+  --ink: #17232c;
+  --muted: #5a6872;
+  --line: #d3dade;
+  --line-strong: #aeb9c0;
+  --steel: #1d4a66;
+  --steel-ink: #ffffff;
+  --focus: #2a7fd4;
+
+  --ok: #23774a;
+  --ok-fill: #3aa169;
+  --ok-bg: #dcefe3;
+  --fail: #b3261e;
+  --fail-fill: #d6453b;
+  --fail-bg: #f8dcd9;
+  --wait: #7a5a00;
+  --wait-bg: #fff1c2;
+  --safety: #f5c400;
+  --pending-fill: #c9d1d6;
+
+  --radius: 6px;
+  --font: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-narrow: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111418;
-    --text: #e8eaee;
-    --muted: #9aa3b2;
-    --line: #2a3038;
-    --bar: #0a1c2b;
-    --ok: #7fdca4;
-    --ok-bg: #12301f;
-    --warn: #f5c76b;
-    --warn-bg: #3a2a07;
-    --danger: #ff8a9b;
-    --danger-bg: #3d1119;
+    color-scheme: dark;
+    --paper: #12181d;
+    --surface: #1a2229;
+    --ink: #e6ebee;
+    --muted: #97a4ad;
+    --line: #2b363e;
+    --line-strong: #43515b;
+    --steel: #6fb0d8;
+    --steel-ink: #0c1a24;
+    --focus: #8cc4ff;
+
+    --ok: #7fd3a0;
+    --ok-fill: #3aa169;
+    --ok-bg: #163324;
+    --fail: #ff958c;
+    --fail-fill: #d6453b;
+    --fail-bg: #3d1714;
+    --wait: #f5d36b;
+    --wait-bg: #3a2f08;
+    --pending-fill: #3a4650;
   }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+  background: var(--paper);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-narrow);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+a {
+  color: var(--steel);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+// ---- page scaffolding ----
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-head p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--fail);
+}
+
+// ---- buttons ----
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    border-color: var(--ink);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--steel);
+  border-color: var(--steel);
+  color: var(--steel-ink);
+
+  &:hover:not(:disabled) {
+    border-color: var(--steel);
+    filter: brightness(1.1);
+  }
+}
+
+// Promotion is the one decision a person must make, so it gets safety yellow.
+.btn-approve {
+  background: var(--safety);
+  border-color: #c79f00;
+  color: #1a1400;
+}
+
+.btn-danger {
+  color: var(--fail);
+  border-color: currentColor;
+}
+
+// Small inline button that reads as a link.
+.link-btn {
+  font: inherit;
+  font-weight: 600;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--steel);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+
+  &.error {
+    color: var(--fail);
+  }
+}
+
+.btn.small {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// ---- forms ----
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+    font-weight: 400;
+    font-size: 1rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  .hint {
+    font-weight: 400;
+    color: var(--muted);
+  }
+}
+
+// ---- tables ----
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  th {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: var(--paper);
+    white-space: nowrap;
+  }
+}
+
+.code {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+// ---- status chips ----
+
+.chip {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--paper);
+  color: var(--muted);
+  border: 1px solid var(--line);
+
+  &.ok {
+    background: var(--ok-bg);
+    color: var(--ok);
+    border-color: transparent;
+  }
+  &.fail {
+    background: var(--fail-bg);
+    color: var(--fail);
+    border-color: transparent;
+  }
+  &.wait {
+    background: var(--wait-bg);
+    color: var(--wait);
+    border-color: transparent;
+  }
+  &.live {
+    background: var(--steel);
+    color: var(--steel-ink);
+    border-color: transparent;
+  }
+}
+
+// Hazard tape: used only when a rollout has been stopped.
+.hazard {
+  border-radius: var(--radius);
+  padding: 6px;
+  background: repeating-linear-gradient(-45deg, var(--safety) 0 14px, #1a1400 14px 28px);
+
+  > .hazard-body {
+    background: var(--surface);
+    border-radius: 3px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

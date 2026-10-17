@@ -1,7 +1,10 @@
 <header class="app-bar">
-  <span class="brand">ToolFleet</span>
-  <nav>
+  <a class="brand" routerLink="/">ToolFleet</a>
+  <nav aria-label="Main">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Fleet</a>
+    <a routerLink="/firmware" routerLinkActive="active">Firmware</a>
+    <a routerLink="/rollouts" routerLinkActive="active">Rollouts</a>
+    <a routerLink="/audit" routerLinkActive="active">Audit log</a>
   </nav>
 </header>
 

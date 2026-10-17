@@ -1,0 +1,201 @@
+<a routerLink="/rollouts" class="back">All rollouts</a>
+
+@if (loadError() && !rollout()) {
+  <p class="error" role="alert">{{ loadError() }}</p>
+}
+
+@if (rollout(); as r) {
+  <div class="page-head">
+    <div>
+      <h1>{{ r.model }} <span class="version">{{ r.targetVersion }}</span></h1>
+      <p>
+        Canary of {{ r.canaryPercent }}%, halts if more than {{ r.failureThresholdPercent }}% of a stage fails.
+        @if (r.startedAtUtc) {
+          Started {{ time(r.startedAtUtc) }} UTC.
+        }
+      </p>
+    </div>
+    <app-rollout-status-chip [status]="r.status" />
+  </div>
+
+  <!-- What happens next, and the one action that moves it along. -->
+  @switch (r.status) {
+    @case ('Halted') {
+      <div class="hazard" role="alert">
+        <div class="hazard-body">
+          <h2>Rollout halted</h2>
+          <p>{{ r.haltReason }} No more tools will be updated. Tools that already updated keep {{ r.targetVersion }}.</p>
+        </div>
+      </div>
+    }
+    @default {
+      <div class="next panel" [class.awaiting]="r.status === 'AwaitingPromotion'">
+        <p class="next-text" role="status">
+          @switch (r.status) {
+            @case ('Draft') {
+              Nothing has been flashed yet. Starting sends {{ r.targetVersion }} to the {{ r.canary.total }} canary tools.
+            }
+            @case ('Canary') {
+              Waiting for {{ r.canary.pending }} of {{ r.canary.total }} canary tools to report.
+            }
+            @case ('AwaitingPromotion') {
+              Canary passed: {{ r.canary.succeeded }} of {{ r.canary.total }} updated.
+              Approve to update the remaining {{ r.full.total }} tools.
+            }
+            @case ('Full') {
+              Updating the rest of the fleet. {{ r.full.pending }} of {{ r.full.total }} tools still to report.
+            }
+            @case ('Completed') {
+              Done. {{ r.canary.succeeded + r.full.succeeded }} tools now run {{ r.targetVersion }}.
+              @if (failedTargets().length) {
+                {{ failedTargets().length }} failed and stayed on their old version.
+              }
+            }
+            @case ('Aborted') {
+              Aborted. Tools that already updated keep {{ r.targetVersion }}; the rest were not touched.
+            }
+          }
+        </p>
+
+        @if (!finished()) {
+          <div class="actions">
+            @if (r.status === 'Draft') {
+              <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="act('start')">
+                {{ busy() === 'start' ? 'Starting…' : 'Start rollout' }}
+              </button>
+            }
+            @if (r.status === 'AwaitingPromotion') {
+              <button type="button" class="btn btn-approve" [disabled]="busy()" (click)="act('promote')">
+                {{ busy() === 'promote' ? 'Approving…' : 'Approve rest of fleet' }}
+              </button>
+            }
+            @if (confirmingAbort()) {
+              <span class="confirm">
+                Abort this rollout?
+                <button type="button" class="btn btn-danger" [disabled]="busy()" (click)="act('abort')">
+                  {{ busy() === 'abort' ? 'Aborting…' : 'Yes, abort' }}
+                </button>
+                <button type="button" class="btn" (click)="confirmingAbort.set(false)">Keep going</button>
+              </span>
+            } @else {
+              <button type="button" class="btn btn-danger" [disabled]="busy()" (click)="confirmingAbort.set(true)">
+                Abort
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  @if (actionError()) {
+    <p class="error" role="alert">{{ actionError() }}</p>
+  }
+
+  <!-- The core tray: one cell per tool, filling in as results arrive. -->
+  <section class="tray panel" [class.finished]="finished()" aria-labelledby="tray-heading">
+    <h2 id="tray-heading" class="visually-hidden">Tools in this rollout</h2>
+
+    @for (row of trayRows(); track row.stage) {
+      @if (row.targets.length) {
+        <div class="tray-row" [class.running]="stage() === row.stage">
+          <div class="tray-label">
+            <h3>{{ row.name }}</h3>
+            <p>
+              {{ row.progress.succeeded }} updated@if (row.progress.failed) {<span class="error">, {{ row.progress.failed }} failed</span>}<span class="muted"> of {{ row.progress.total }}</span>
+            </p>
+          </div>
+          <ul class="cells" role="list">
+            @for (t of row.targets; track t.toolId) {
+              <li
+                class="cell"
+                [attr.data-status]="t.status"
+                [attr.title]="cellLabel(t)"
+                [attr.aria-label]="cellLabel(t)"
+              >
+                <span aria-hidden="true">{{ shortSerial(t.serialNumber) }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+
+    <p class="legend muted">
+      <span class="key" data-status="Succeeded"></span> Updated
+      <span class="key" data-status="Failed"></span> Failed
+      <span class="key" data-status="Pending"></span> {{ finished() ? 'Not updated' : 'Waiting' }}
+    </p>
+  </section>
+
+  @if (stage()) {
+    <section class="panel simulator" aria-labelledby="sim-heading">
+      <div>
+        <h2 id="sim-heading">Field simulator</h2>
+        <p class="muted">
+          No real tools are connected, so this plays their part: each tool in the running stage reports back,
+          the same way <code>tools/simulator.cs</code> does from a terminal.
+        </p>
+      </div>
+      <div class="sim-controls">
+        <label class="field">
+          Failure chance: {{ failRate() }}%
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            [value]="failRate()"
+            (input)="failRate.set(+$any($event.target).value)"
+            [disabled]="simulating()"
+          />
+        </label>
+        @if (simulating()) {
+          <button type="button" class="btn" (click)="stop()">Stop</button>
+        } @else {
+          <button type="button" class="btn btn-primary" (click)="runSimulator()">
+            Report {{ stage() === 'Canary' ? 'canary' : 'fleet' }} results
+          </button>
+        }
+      </div>
+    </section>
+  }
+
+  <section aria-labelledby="results-heading">
+    <h2 id="results-heading" class="section-title">Results by tool</h2>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th scope="col">Serial</th>
+            <th scope="col">Base</th>
+            <th scope="col">Stage</th>
+            <th scope="col">Result</th>
+            <th scope="col">Was on</th>
+            <th scope="col">Reported (UTC)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of r.targets; track t.toolId) {
+            <tr>
+              <td class="code">{{ t.serialNumber }}</td>
+              <td>{{ t.locationName }}</td>
+              <td>{{ t.stage === 'Canary' ? 'Canary' : 'Rest of fleet' }}</td>
+              <td>
+                @switch (t.status) {
+                  @case ('Succeeded') { <span class="chip ok">Updated</span> }
+                  @case ('Failed') { <span class="chip fail">Failed</span> <span class="reason">{{ t.failureReason }}</span> }
+                  @default { <span class="chip">{{ finished() ? 'Not updated' : 'Waiting' }}</span> }
+                }
+              </td>
+              <td class="code">{{ t.previousVersion }}</td>
+              <td class="nowrap">{{ time(t.reportedAtUtc) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+} @else if (!loadError()) {
+  <p class="muted">Loading rollout…</p>
+}

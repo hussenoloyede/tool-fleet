@@ -1,0 +1,98 @@
+<div class="page-head">
+  <div>
+    <h1>Firmware</h1>
+    <p>Publish a build, then roll it out to the tools that need it. Only the newest build of each model can be rolled out.</p>
+  </div>
+</div>
+
+<div class="layout">
+  <section aria-labelledby="releases-heading">
+    <h2 id="releases-heading" class="visually-hidden">Releases by model</h2>
+
+    @if (releases.error() || tools.error()) {
+      <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+    } @else if (!releases.hasValue() || !tools.hasValue()) {
+      <p class="muted">Loading releases…</p>
+    }
+
+    @for (group of groups(); track group.model) {
+      <div class="model">
+        <h3>{{ group.model }} <span class="muted count">{{ group.toolCount }} tools</span></h3>
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th scope="col">Version</th>
+                <th scope="col">Notes</th>
+                <th scope="col">Published</th>
+                <th scope="col">Tools on it</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of group.releases; track row.release.id) {
+                <tr>
+                  <td class="code">{{ row.release.version }}</td>
+                  <td>{{ row.release.notes || '—' }}</td>
+                  <td class="nowrap">{{ row.release.publishedAtUtc.slice(0, 10) }}</td>
+                  <td>{{ row.onVersion }} of {{ group.toolCount }}</td>
+                  <td class="actions">
+                    @if ($first && row.onVersion < group.toolCount) {
+                      <a class="btn small" routerLink="/rollouts" [queryParams]="{ release: row.release.id }">
+                        Roll out
+                      </a>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="panel publish" aria-labelledby="publish-heading">
+    <h2 id="publish-heading">Publish a build</h2>
+
+    <form [formGroup]="form" (ngSubmit)="publish()" novalidate>
+      <label class="field">
+        Tool model
+        <select formControlName="model">
+          <option value="" disabled>Choose a model</option>
+          @for (m of models(); track m) {
+            <option [value]="m">{{ m }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        Version
+        <input formControlName="version" placeholder="4.3.0" autocomplete="off" />
+        @if (form.controls.version.touched && form.controls.version.invalid) {
+          <span class="error">Use three numbers, like 4.3.0.</span>
+        }
+      </label>
+
+      <label class="field">
+        Release notes
+        <textarea formControlName="notes" rows="3" placeholder="What changed in this build"></textarea>
+      </label>
+
+      @if (publishError()) {
+        <p class="error" role="alert">{{ publishError() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Publishing…' : 'Publish build' }}
+      </button>
+    </form>
+
+    @if (justPublished(); as r) {
+      <p class="published" role="status">
+        Published {{ r.model }} {{ r.version }}.
+        <a routerLink="/rollouts" [queryParams]="{ release: r.id }">Roll it out</a>
+      </p>
+    }
+  </section>
+</div>
