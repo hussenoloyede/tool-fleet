@@ -1,5 +1,5 @@
 # Azure DevOps pipeline: runs on every push and pull request to main.
-# Stage 1 builds and tests the API and the Angular app in parallel and publishes both as artifacts.
+# Stage 1 builds and tests the API and the Angular app and publishes both as artifacts.
 # A deploy stage (Azure App Service + Azure SQL) comes in week 3; see the commented stub at the bottom.
 
 trigger:
@@ -9,6 +9,19 @@ trigger:
 pr:
   branches:
     include: [main]
+
+# Where the jobs run. Pushes use the default. To run once on the other kind of machine,
+# use "Run pipeline" in Azure DevOps and pick it from the list.
+#   Microsoft-hosted: Microsoft's cloud machines. The organisation's free tier gives 1,800 minutes a month.
+#   Self-hosted: an agent installed on your own PC in the "Default" pool, if the free minutes run out.
+parameters:
+  - name: buildMachine
+    displayName: Build machine
+    type: string
+    default: Microsoft-hosted
+    values:
+      - Self-hosted
+      - Microsoft-hosted
 
 variables:
   buildConfiguration: Release
@@ -20,7 +33,10 @@ stages:
       - job: Api
         displayName: API (.NET)
         pool:
-          vmImage: ubuntu-latest
+          ${{ if eq(parameters.buildMachine, 'Microsoft-hosted') }}:
+            vmImage: ubuntu-latest
+          ${{ else }}:
+            name: Default
         steps:
           - task: UseDotNet@2
             displayName: Install .NET SDK from global.json
@@ -66,7 +82,10 @@ stages:
       - job: Web
         displayName: Web (Angular)
         pool:
-          vmImage: ubuntu-latest
+          ${{ if eq(parameters.buildMachine, 'Microsoft-hosted') }}:
+            vmImage: ubuntu-latest
+          ${{ else }}:
+            name: Default
         steps:
           - task: UseNode@1
             displayName: Install Node 24
