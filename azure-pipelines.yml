@@ -12,7 +12,8 @@ pr:
 
 # Where the jobs run. Pushes use the default. To run once on the other kind of machine,
 # use "Run pipeline" in Azure DevOps and pick it from the list.
-#   Microsoft-hosted: Microsoft's cloud machines. The organisation's free tier gives 1,800 minutes a month.
+#   Microsoft-hosted: Microsoft's cloud machines, pinned to Ubuntu 24.04 so the OS only changes when we choose.
+#                     The organisation's free tier gives 1,800 minutes a month.
 #   Self-hosted: an agent installed on your own PC in the "Default" pool, if the free minutes run out.
 parameters:
   - name: buildMachine
@@ -34,7 +35,7 @@ stages:
         displayName: API (.NET)
         pool:
           ${{ if eq(parameters.buildMachine, 'Microsoft-hosted') }}:
-            vmImage: ubuntu-latest
+            vmImage: ubuntu-24.04
           ${{ else }}:
             name: Default
         steps:
@@ -83,7 +84,7 @@ stages:
         displayName: Web (Angular)
         pool:
           ${{ if eq(parameters.buildMachine, 'Microsoft-hosted') }}:
-            vmImage: ubuntu-latest
+            vmImage: ubuntu-24.04
           ${{ else }}:
             name: Default
         steps:
@@ -117,7 +118,7 @@ stages:
 #      - deployment: Api
 #        environment: production
 #        pool:
-#          vmImage: ubuntu-latest
+#          vmImage: ubuntu-24.04
 #        strategy:
 #          runOnce:
 #            deploy:
