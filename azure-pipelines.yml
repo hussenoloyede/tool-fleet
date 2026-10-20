@@ -1,6 +1,6 @@
 # Azure DevOps pipeline: runs on every push and pull request to main.
 # Stage 1 builds and tests the API and the Angular app and publishes both as artifacts.
-# A deploy stage (Azure App Service + Azure SQL) comes in week 3; see the commented stub at the bottom.
+# Stage 2 deploys main to Azure App Service, which talks to Azure SQL.
 
 trigger:
   branches:
@@ -26,6 +26,9 @@ parameters:
 
 variables:
   buildConfiguration: Release
+  # Must match the names created in Azure and Azure DevOps (see docs/azure-setup.md).
+  azureServiceConnection: toolfleet-azure
+  webAppName: toolfleet-hussein
 
 stages:
   - stage: Build
@@ -109,22 +112,40 @@ stages:
             artifact: web
             displayName: Upload web artifact
 
-# Week 3: uncomment once the Azure resources and service connection exist.
-#
-#  - stage: Deploy
-#    dependsOn: Build
-#    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-#    jobs:
-#      - deployment: Api
-#        environment: production
-#        pool:
-#          vmImage: ubuntu-24.04
-#        strategy:
-#          runOnce:
-#            deploy:
-#              steps:
-#                - task: AzureWebApp@1
-#                  inputs:
-#                    azureSubscription: toolfleet-azure   # service connection name
-#                    appName: toolfleet-api-<your-suffix>
-#                    package: $(Pipeline.Workspace)/api
+  # Deploys every green build of main (not pull requests) to Azure App Service.
+  # The API and the website ship together: the Angular build goes into the API's wwwroot folder.
+  - stage: Deploy
+    displayName: Deploy to Azure
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - deployment: Site
+        displayName: API and website
+        environment: production
+        pool:
+          ${{ if eq(parameters.buildMachine, 'Microsoft-hosted') }}:
+            vmImage: ubuntu-24.04
+          ${{ else }}:
+            name: Default
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: api
+                - download: current
+                  artifact: web
+
+                - task: CopyFiles@2
+                  displayName: Put the website inside the API's wwwroot
+                  inputs:
+                    SourceFolder: $(Pipeline.Workspace)/web
+                    TargetFolder: $(Pipeline.Workspace)/api/wwwroot
+
+                - task: AzureWebApp@1
+                  displayName: Deploy to App Service
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    appType: webAppLinux
+                    appName: $(webAppName)
+                    package: $(Pipeline.Workspace)/api

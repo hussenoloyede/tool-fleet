@@ -9,8 +9,9 @@ public static class DatabaseInitialiser
         string.Equals(configuration["Database:Provider"], "Sqlite", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Development only. SQL Server: applies EF migrations (falls back to EnsureCreated until the first
-    /// migration exists). SQLite: EnsureCreated, because the migrations are written for SQL Server.
+    /// Runs in Development, and in Azure when Database:MigrateOnStartup is true.
+    /// SQL Server: applies EF migrations from Data/Migrations. SQLite: EnsureCreated, because the
+    /// migrations are written for SQL Server. Seeding only adds the demo fleet to an empty database.
     /// </summary>
     public static async Task InitialiseDatabaseAsync(this WebApplication app, bool seed)
     {

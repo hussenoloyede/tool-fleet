@@ -120,6 +120,14 @@ public class RolloutApiTests(FleetApiFactory factory) : IClassFixture<FleetApiFa
     }
 
     [Fact]
+    public async Task Unknown_api_route_returns_404_not_the_website()
+    {
+        var response = await _client.GetAsync("/api/does-not-exist");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Unknown_calibration_filter_returns_400()
     {
         var response = await _client.GetAsync("/api/tools?calibration=whenever");

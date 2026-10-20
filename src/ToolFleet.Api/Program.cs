@@ -24,7 +24,8 @@ builder.Services.AddDbContext<FleetDbContext>(options =>
     if (DatabaseInitialiser.UsesSqlite(builder.Configuration))
         options.UseSqlite(connectionString);
     else
-        options.UseSqlServer(connectionString);
+        // Azure SQL's free tier pauses when idle and takes a few seconds to wake; retry instead of failing.
+        options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
 });
 
 var app = builder.Build();
@@ -37,6 +38,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi(); // JSON description at /openapi/v1.json
     await app.InitialiseDatabaseAsync(seed: true);
 }
+else if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    // Azure: apply migrations on startup, and seed the demo fleet into an empty database if asked to.
+    await app.InitialiseDatabaseAsync(seed: app.Configuration.GetValue<bool>("Database:SeedDemoData"));
+}
+
+// The website. The pipeline copies the Angular build into wwwroot, so one App Service hosts both.
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.MapHealthChecks("/health");
 
@@ -46,6 +56,11 @@ api.MapToolEndpoints();
 api.MapFirmwareEndpoints();
 api.MapRolloutEndpoints();
 api.MapAuditEndpoints();
+
+// Unknown /api routes are a 404, not the website. Every other unknown path is an Angular route
+// (e.g. /rollouts/123 after a refresh), so it gets index.html and Angular takes over.
+app.Map("/api/{**rest}", () => Results.NotFound());
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

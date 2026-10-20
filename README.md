@@ -37,18 +37,18 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download), Node 24 and D
 
 ```bash
 # one-time setup
-dotnet tool install --global dotnet-ef
+dotnet tool restore                     # installs dotnet-ef, pinned in dotnet-tools.json
 docker compose up -d                    # SQL Server on localhost:1433
 
 # build and test
 dotnet build
 dotnet test
 
-# create the database schema (first time, and after every model change)
-dotnet ef migrations add InitialCreate --project src/ToolFleet.Api --output-dir Data/Migrations
-
 # run the API on http://localhost:5080 (applies migrations and seeds 40 demo tools)
 dotnet run --project src/ToolFleet.Api
+
+# after changing an entity, add a migration for it
+dotnet ef migrations add <WhatChanged> --project src/ToolFleet.Api --output-dir Data/Migrations
 
 # in a second terminal: the web app on http://localhost:4200
 cd web && npm install && npm start
@@ -57,6 +57,8 @@ cd web && npm install && npm start
 No Docker? Run the API with SQLite instead: `dotnet run --project src/ToolFleet.Api --launch-profile sqlite`.
 
 The OpenAPI description is at `http://localhost:5080/openapi/v1.json` in development.
+
+Deploying to Azure (App Service, Azure SQL with a managed identity, and the pipeline's service connection) is a one-time setup described in [docs/azure-setup.md](docs/azure-setup.md).
 
 ### Try a rollout in the browser
 
