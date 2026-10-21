@@ -58,6 +58,7 @@ stages:
               --logger trx
               --results-directory $(Agent.TempDirectory)/TestResults
               --collect "XPlat Code Coverage"
+              --settings coverage.runsettings
             displayName: Test
 
           - task: PublishTestResults@2

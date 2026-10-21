@@ -2,7 +2,7 @@
 
 Track downhole tools across field bases and roll out firmware in stages: a small canary group first, an automatic halt if too many fail, and a human sign-off before the rest of the fleet updates. Every change lands in an audit log.
 
-> Work in progress. The full demo runs locally: publish a build, run a canary, watch it halt or approve the rest, and read the audit log. Deployment to Azure is next. See the [MVP scope](docs/mvp-scope.md) for the plan.
+> Work in progress. Live demo: [toolfleet-hussein-euf6h0g7bxbrhabk.eastasia-01.azurewebsites.net](https://toolfleet-hussein-euf6h0g7bxbrhabk.eastasia-01.azurewebsites.net) (Azure free tier, so the first load after a quiet spell takes 20 to 30 seconds while the app and database wake up). Publish a build, run a canary, watch it halt or approve the rest, and read the audit log. See the [MVP scope](docs/mvp-scope.md) for the plan.
 
 <!-- TODO week 4: add a GIF of the demo, the live demo link and the Azure DevOps status badge here. -->
 

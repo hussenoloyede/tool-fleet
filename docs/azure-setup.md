@@ -10,21 +10,21 @@ One-time setup for the live demo. Everything sits in one resource group, so dele
 | App Service plan | `toolfleet-plan` | Linux, Free F1 | Free (B1 is about US$13 a month if F1 isn't available) |
 | Web app | `toolfleet-hussein` | .NET 10 | Included in the plan |
 
-Use the same region for everything. Azure for Students only allows some regions; if one is refused, the error message lists the allowed ones.
+Put the database and the web app in **East Asia**. Azure for Students only allows a set of regions (Policy → Assignments → *Allowed resource deployment regions* lists them); Southeast Asia isn't one of them, and East Asia is the closest that is. The resource group itself can be in any region.
 
 The web app reaches the database with its managed identity, an identity Azure gives the app itself. There is no database password anywhere: not in the code, not in the pipeline, not in App Service settings.
 
 ## 1. Resource group
 
-Portal → Resource groups → Create. Subscription: Azure for Students. Name `toolfleet-rg`. Region: Southeast Asia, or the nearest allowed one.
+Portal → Resource groups → Create. Subscription: Azure for Students. Name `toolfleet-rg`. Any region.
 
 ## 2. Azure SQL database (free offer)
 
-Portal → SQL databases → Create.
+Portal → SQL databases → Create → **SQL database (Free offer)**.
 
 - If the page shows "Want to try Azure SQL Database for free?", click **Apply offer**.
 - Resource group `toolfleet-rg`, database name `toolfleet`.
-- Server: **Create new**. Name `toolfleet-sql-hussein`, same region.
+- Server: **Create new**. Name `toolfleet-sql-hussein`, region **East Asia**.
   - Authentication method: **Use Microsoft Entra-only authentication**.
   - **Set admin**: choose your own account.
 - Free offer behaviour when the limit is reached: **Auto-pause the database until next month**. This guarantees it never costs money.
@@ -36,7 +36,7 @@ Portal → SQL databases → Create.
 Portal → App Services → Create → **Web App**.
 
 - Resource group `toolfleet-rg`, name `toolfleet-hussein` (the pipeline deploys to this exact name).
-- Publish **Code**, runtime stack **.NET 10 (LTS)**, operating system **Linux**, same region.
+- Publish **Code**, runtime stack **.NET 10 (LTS)**, operating system **Linux**, region **East Asia**.
 - Pricing plan: create new `toolfleet-plan`, choose **Free F1**.
 - Review + create.
 
@@ -77,6 +77,14 @@ Azure DevOps → ToolFleet project → **Project settings → Service connection
 
 ## 6. Deploy
 
-Push to `main`. The pipeline builds, tests, then the Deploy stage puts the API and website on `https://toolfleet-hussein.azurewebsites.net`. On the first deploy Azure DevOps may ask you to **Permit** the pipeline to use the `production` environment.
+Before the first deploy, create the environment the Deploy stage targets: Azure DevOps → Pipelines → Environments → **New environment**, name `production`, resource **None**. Open it, then ⋮ → **Security** → Pipeline permissions → **+** and add the ToolFleet pipeline. Without this the run fails with "Environment production could not be found".
+
+Push to `main`. The pipeline builds, tests, then the Deploy stage puts the API and website on the web app.
+
+New App Service apps get a unique address with a random suffix, so `toolfleet-hussein.azurewebsites.net` does not exist. The real one is under **Default domain** on the web app's Overview page. For this project it is:
+
+https://toolfleet-hussein-euf6h0g7bxbrhabk.eastasia-01.azurewebsites.net
+
+Quick checks once it's deployed: `/health` should say `Healthy`, and `/api/tools` should list 40 tools. If either fails, open the web app → Monitoring → **Log stream** and reload the page to see the error.
 
 The first page load after a quiet spell is slow: the F1 app and the free database both go to sleep when idle.
