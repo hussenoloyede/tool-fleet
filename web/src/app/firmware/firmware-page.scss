@@ -38,10 +38,12 @@
   }
 }
 
-.file {
-  .code {
-    overflow-wrap: anywhere;
-  }
+// Long file names are cut short with "…" so the Download button stays in view; hover shows the full name.
+.file-name {
+  display: block;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .file-facts {

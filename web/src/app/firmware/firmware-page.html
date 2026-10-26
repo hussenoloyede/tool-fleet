@@ -41,7 +41,7 @@
                   <td>{{ row.release.notes || '—' }}</td>
                   <td class="file">
                     @if (row.release.file; as f) {
-                      <span class="code">{{ f.fileName }}</span>
+                      <span class="code file-name" [title]="f.fileName">{{ f.fileName }}</span>
                       <span class="muted file-facts">
                         {{ formatBytes(f.sizeBytes) }} · SHA-256
                         <abbr class="code" [title]="f.sha256">{{ f.sha256.slice(0, 12) }}…</abbr>
