@@ -57,6 +57,7 @@ describe('FirmwarePage', () => {
     fixture.detectChanges();
     http.expectOne('/api/firmware').flush(releases);
     http.expectOne('/api/tools').flush([tool]);
+    http.expectOne('/api/rollouts').flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture;

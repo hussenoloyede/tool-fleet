@@ -1,12 +1,19 @@
 <div class="page-head">
   <div>
     <h1>Firmware</h1>
-    <p>Publish a build with its file, then roll it out to the tools that need it. Only the newest build of each model can be rolled out.</p>
+    <p>
+      Publish a build with its file, then roll it out to the tools that need it. Each file's SHA-256 fingerprint is
+      recorded on upload, and only the newest build of a model can be rolled out.
+    </p>
+  </div>
+  <div class="head-actions">
+    <a class="btn" routerLink="/audit"><app-icon name="list" /> Audit log</a>
+    <button type="button" class="btn btn-primary" (click)="focusPublish()"><app-icon name="plus" /> Publish build</button>
   </div>
 </div>
 
 <div class="layout">
-  <section aria-labelledby="releases-heading">
+  <section class="groups" aria-labelledby="releases-heading">
     <h2 id="releases-heading" class="visually-hidden">Releases by model</h2>
 
     @if (downloadError()) {
@@ -14,61 +21,109 @@
     }
 
     @if (releases.error() || tools.error()) {
-      <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+      <p class="error" role="alert">Couldn't reach the API. If the demo has been idle, give it 30 seconds to wake up and refresh.</p>
     } @else if (!releases.hasValue() || !tools.hasValue()) {
       <p class="muted">Loading releases…</p>
     }
 
     @for (group of groups(); track group.model) {
-      <div class="model">
-        <h3>{{ group.model }} <span class="muted count">{{ group.toolCount }} tools</span></h3>
-        <div class="table-wrap">
+      <div class="model" [class.live]="group.rolloutActive">
+        <div class="model-head">
+          <h3>
+            <span
+              class="dot"
+              [class.live]="group.rolloutActive"
+              [class.ok]="!group.rolloutActive && group.toolCount > 0 && group.coverage.percent === 100"
+              [class.warn]="!group.rolloutActive && group.toolCount > 0 && group.coverage.percent < 100"
+            ></span>
+            {{ group.model }}
+            <span class="tag plain">{{ group.toolCount }} tools</span>
+            @if (group.rolloutActive) {
+              <a class="tag accent" routerLink="/rollouts">Rollout in progress</a>
+            }
+          </h3>
+          <p class="coverage mono">
+            @if (group.toolCount > 0) {
+              On newest build:
+              <span [class.full]="group.coverage.percent === 100">
+                {{ group.coverage.percent }}% ({{ group.coverage.onNewest }}/{{ group.toolCount }} on v{{ group.coverage.version }})
+              </span>
+            } @else {
+              No tools of this model yet
+            }
+          </p>
+        </div>
+
+        <div class="table-scroll">
           <table class="data">
             <thead>
               <tr>
                 <th scope="col">Version</th>
                 <th scope="col">Notes</th>
-                <th scope="col">File</th>
+                <th scope="col">File and fingerprint</th>
                 <th scope="col">Published</th>
                 <th scope="col">Tools on it</th>
-                <th scope="col"><span class="visually-hidden">Actions</span></th>
+                <th scope="col" class="actions">Action</th>
               </tr>
             </thead>
             <tbody>
               @for (row of group.releases; track row.release.id) {
-                <tr>
-                  <td class="code">{{ row.release.version }}</td>
-                  <td>{{ row.release.notes || '—' }}</td>
-                  <td class="file">
-                    @if (row.release.file; as f) {
-                      <span class="code file-name" [title]="f.fileName">{{ f.fileName }}</span>
-                      <span class="muted file-facts">
-                        {{ formatBytes(f.sizeBytes) }} · SHA-256
-                        <abbr class="code" [title]="f.sha256">{{ f.sha256.slice(0, 12) }}…</abbr>
-                      </span>
+                <tr [class.newest]="$first">
+                  <td class="nowrap">
+                    <span class="ver lg" [class.current]="$first">{{ row.release.version }}</span>
+                    @if ($first) {
+                      @if (group.toolCount > 0 && row.onVersion === group.toolCount) {
+                        <span class="tag ok">Current</span>
+                      } @else {
+                        <span class="tag accent">Latest</span>
+                      }
                     } @else {
-                      <span class="muted">No file</span>
+                      <span class="tag">Previous</span>
                     }
                   </td>
-                  <td class="nowrap">{{ row.release.publishedAtUtc.slice(0, 10) }}</td>
-                  <td>{{ row.onVersion }} of {{ group.toolCount }}</td>
+                  <td class="notes">{{ row.release.notes || '—' }}</td>
+                  <td class="file">
+                    @if (row.release.file; as f) {
+                      <span class="file-name code" [title]="f.fileName"><app-icon name="file" /> {{ f.fileName }}</span>
+                      <span class="file-facts mono">
+                        {{ formatBytes(f.sizeBytes) }} · SHA-256
+                        <abbr [title]="f.sha256">{{ f.sha256.slice(0, 12) }}…</abbr>
+                        <app-icon class="ok-mark" name="check" />
+                      </span>
+                    } @else {
+                      <span class="dim no-file">No file</span>
+                    }
+                  </td>
+                  <td class="code">{{ row.release.publishedAtUtc.slice(0, 10) }}</td>
+                  <td class="nowrap">
+                    <span class="code">{{ row.onVersion }} of {{ group.toolCount }}</span>
+                    <span class="meter" [class.full]="row.onVersion === group.toolCount" aria-hidden="true">
+                      <span [style.width.%]="percent(row.onVersion, group.toolCount)"></span>
+                    </span>
+                  </td>
                   <td class="actions">
-                    @if (row.release.file) {
-                      <button
-                        type="button"
-                        class="btn small"
-                        (click)="download(row.release)"
-                        [disabled]="downloading() === row.release.id"
-                        [attr.aria-label]="'Download ' + group.model + ' ' + row.release.version"
-                      >
-                        {{ downloading() === row.release.id ? 'Getting link…' : 'Download' }}
-                      </button>
-                    }
-                    @if ($first && row.release.file && row.onVersion < group.toolCount) {
-                      <a class="btn small" routerLink="/rollouts" [queryParams]="{ release: row.release.id }">
-                        Roll out
-                      </a>
-                    }
+                    <span class="action-row">
+                      @if (row.release.file) {
+                        <button
+                          type="button"
+                          class="btn small"
+                          (click)="download(row.release)"
+                          [disabled]="downloading() === row.release.id"
+                          [attr.aria-label]="'Download ' + group.model + ' ' + row.release.version"
+                        >
+                          <app-icon name="download" />
+                          {{ downloading() === row.release.id ? 'Getting link…' : 'Download' }}
+                        </button>
+                      }
+                      @if ($first && row.release.file && row.onVersion < group.toolCount && !group.rolloutActive) {
+                        <a class="btn small btn-primary" routerLink="/rollouts" [queryParams]="{ release: row.release.id }">
+                          <app-icon name="rocket" /> Roll out
+                        </a>
+                      }
+                      @if ($first && group.toolCount > 0 && row.onVersion === group.toolCount) {
+                        <span class="dim fully">Fully deployed</span>
+                      }
+                    </span>
                   </td>
                 </tr>
               }
@@ -81,11 +136,13 @@
 
   <section class="panel publish" aria-labelledby="publish-heading">
     <h2 id="publish-heading">Publish a build</h2>
+    <p class="muted intro">Upload the firmware file. Only the newest build of each model can be rolled out.</p>
+    <hr class="divider" />
 
     <form [formGroup]="form" (ngSubmit)="publish()" novalidate>
       <label class="field">
-        Tool model
-        <select formControlName="model">
+        <span class="label-row"><span>Tool model<span class="req">*</span></span></span>
+        <select #modelSelect formControlName="model">
           <option value="" disabled>Choose a model</option>
           @for (m of models(); track m) {
             <option [value]="m">{{ m }}</option>
@@ -94,35 +151,43 @@
       </label>
 
       <label class="field">
-        Version
-        <input formControlName="version" placeholder="4.3.0" autocomplete="off" />
+        <span class="label-row"><span>Version<span class="req">*</span></span><span class="note">major.minor.patch</span></span>
+        <input formControlName="version" class="mono" placeholder="4.3.0" autocomplete="off" />
         @if (form.controls.version.touched && form.controls.version.invalid) {
           <span class="error">Use three numbers, like 4.3.0.</span>
         }
       </label>
 
       <label class="field">
-        Release notes
-        <textarea formControlName="notes" rows="3" placeholder="What changed in this build"></textarea>
+        <span class="label-row"><span>Release notes</span></span>
+        <textarea formControlName="notes" rows="3" placeholder="What changed in this build…"></textarea>
       </label>
 
-      <label class="field">
-        Firmware file
-        <input #fileInput type="file" (change)="onFileChosen($event)" />
-        @if (fileError()) {
-          <span class="error">{{ fileError() }}</span>
-        } @else if (file(); as f) {
-          <span class="hint">{{ formatBytes(f.size) }}</span>
-        } @else {
-          <span class="hint">Up to {{ maxSize }}. Its SHA-256 fingerprint is worked out on upload.</span>
-        }
-      </label>
+      <div class="field">
+        <span class="label-row"><span>Firmware file<span class="req">*</span></span></span>
+        <label class="dropzone" [class.has-file]="file()" [class.bad]="fileError()">
+          <input #fileInput type="file" (change)="onFileChosen($event)" />
+          @if (fileError()) {
+            <span class="error">{{ fileError() }}</span>
+          } @else if (file(); as f) {
+            <span class="hint">{{ formatBytes(f.size) }}</span>
+          } @else {
+            <span class="hint">Up to {{ maxSize }}. Its SHA-256 fingerprint is worked out on upload.</span>
+          }
+        </label>
+      </div>
+
+      <p class="note-box">
+        <app-icon name="shield" />
+        <span>Stored privately. Tools download it through links that expire after 15 minutes.</span>
+      </p>
 
       @if (publishError()) {
         <p class="error" role="alert">{{ publishError() }}</p>
       }
 
-      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+      <button type="submit" class="btn btn-primary block submit" [disabled]="saving()">
+        <app-icon name="upload" />
         {{ saving() ? 'Publishing…' : 'Publish build' }}
       </button>
     </form>

@@ -25,16 +25,17 @@ import { StageProgress } from '../api/fleet-api';
     }
     .bar {
       display: flex;
+      gap: 2px;
       width: 6rem;
-      height: 0.6rem;
-      border-radius: 2px;
+      height: 0.35rem;
+      border-radius: 999px;
       overflow: hidden;
       background: var(--pending-fill);
     }
     .seg.ok { background: var(--ok-fill); }
     .seg.fail { background: var(--fail-fill); }
     .seg.pending { background: var(--pending-fill); }
-    .nums { font-size: 0.875rem; color: var(--muted); }
+    .nums { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
   `,
 })
 export class StageBar {

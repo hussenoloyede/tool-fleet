@@ -1,4 +1,4 @@
-<a routerLink="/rollouts" class="back">All rollouts</a>
+<a routerLink="/rollouts" class="back">← All rollouts</a>
 
 @if (loadError() && !rollout()) {
   <p class="error" role="alert">{{ loadError() }}</p>
@@ -7,7 +7,7 @@
 @if (rollout(); as r) {
   <div class="page-head">
     <div>
-      <h1>{{ r.model }} <span class="version">{{ r.targetVersion }}</span></h1>
+      <h1>{{ r.model }} <span class="version">v{{ r.targetVersion }}</span></h1>
       <p>
         Canary of {{ r.canaryPercent }}%, halts if more than {{ r.failureThresholdPercent }}% of a stage fails.
         @if (r.startedAtUtc) {
@@ -177,10 +177,10 @@
         </thead>
         <tbody>
           @for (t of r.targets; track t.toolId) {
-            <tr>
-              <td class="code">{{ t.serialNumber }}</td>
-              <td>{{ t.locationName }}</td>
-              <td>{{ t.stage === 'Canary' ? 'Canary' : 'Rest of fleet' }}</td>
+            <tr [class.row-fail]="t.status === 'Failed'">
+              <td class="code serial">{{ t.serialNumber }}</td>
+              <td><span class="pill">{{ t.locationName }}</span></td>
+              <td><span class="tag" [class.accent]="t.stage === 'Canary'">{{ t.stage === 'Canary' ? 'Canary' : 'Rest of fleet' }}</span></td>
               <td>
                 @switch (t.status) {
                   @case ('Succeeded') { <span class="chip ok">Updated</span> }
@@ -188,8 +188,8 @@
                   @default { <span class="chip">{{ finished() ? 'Not updated' : 'Waiting' }}</span> }
                 }
               </td>
-              <td class="code">{{ t.previousVersion }}</td>
-              <td class="nowrap">{{ time(t.reportedAtUtc) }}</td>
+              <td><span class="ver">{{ t.previousVersion }}</span></td>
+              <td class="code dim-code">{{ time(t.reportedAtUtc) }}</td>
             </tr>
           }
         </tbody>

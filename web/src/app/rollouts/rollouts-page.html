@@ -18,7 +18,7 @@
               <th scope="col">Status</th>
               <th scope="col">Canary</th>
               <th scope="col">Rest of fleet</th>
-              <th scope="col">Created</th>
+              <th scope="col">Created (UTC)</th>
             </tr>
           </thead>
           <tbody>
@@ -26,17 +26,17 @@
               <tr>
                 <td>
                   <a [routerLink]="['/rollouts', r.id]" class="rollout-link">
-                    {{ r.model }} <span class="code">{{ r.targetVersion }}</span>
+                    {{ r.model }} <span class="ver current">{{ r.targetVersion }}</span>
                   </a>
                 </td>
                 <td><app-rollout-status-chip [status]="r.status" /></td>
                 <td><app-stage-bar [progress]="r.canary" /></td>
                 <td><app-stage-bar [progress]="r.full" /></td>
-                <td class="nowrap">{{ r.createdAtUtc.slice(0, 16).replace('T', ' ') }}</td>
+                <td class="code dim-code">{{ r.createdAtUtc.slice(0, 16).replace('T', ' ') }}</td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="5">No rollouts yet. Pick a firmware build on the right to start one.</td>
+                <td colspan="5" class="empty">No rollouts yet. Pick a firmware build on the right to start one.</td>
               </tr>
             }
           </tbody>
@@ -49,10 +49,12 @@
 
   <section class="panel" aria-labelledby="new-heading">
     <h2 id="new-heading">New rollout</h2>
+    <p class="muted intro">A small canary group goes first. The rest wait for your approval.</p>
+    <hr class="divider" />
 
     <form [formGroup]="form" (ngSubmit)="create()" novalidate>
       <label class="field">
-        Firmware build
+        <span class="label-row"><span>Firmware build<span class="req">*</span></span></span>
         <select formControlName="firmwareReleaseId">
           <option value="" disabled>Choose a build</option>
           @for (r of rollableReleases(); track r.id) {
@@ -68,12 +70,12 @@
       <div class="pair">
         <label class="field">
           Canary size
-          <span class="with-unit"><input type="number" formControlName="canaryPercent" min="1" max="50" />%</span>
+          <span class="with-unit mono"><input type="number" formControlName="canaryPercent" min="1" max="50" />%</span>
           <span class="hint">of the tools that need it</span>
         </label>
         <label class="field">
           Halt above
-          <span class="with-unit"><input type="number" formControlName="failureThresholdPercent" min="0" max="100" />%</span>
+          <span class="with-unit mono"><input type="number" formControlName="failureThresholdPercent" min="0" max="100" />%</span>
           <span class="hint">failures in a stage</span>
         </label>
       </div>
@@ -97,10 +99,10 @@
         <p class="error" role="alert">{{ createError() }}</p>
       }
 
-      <button type="submit" class="btn btn-primary" [disabled]="saving() || preview()?.blocked || preview()?.eligible === 0">
+      <button type="submit" class="btn btn-primary block submit" [disabled]="saving() || preview()?.blocked || preview()?.eligible === 0">
         {{ saving() ? 'Creating…' : 'Create rollout' }}
       </button>
-      <p class="hint muted">It starts as a draft. Nothing is flashed until you press Start.</p>
+      <p class="footnote">It starts as a draft. Nothing is flashed until you press Start.</p>
     </form>
   </section>
 </div>

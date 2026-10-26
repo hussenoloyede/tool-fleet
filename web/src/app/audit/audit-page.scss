@@ -15,8 +15,28 @@
 }
 
 .field-name {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--dim);
+  margin-right: 0.5rem;
+}
+
+.dim-code {
   color: var(--muted);
-  margin-right: 0.4rem;
+}
+
+.actor {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.empty {
+  color: var(--muted);
+  padding: 2rem 1.25rem;
+}
+
+table.data td {
+  vertical-align: top;
 }
 
 .from {
@@ -31,7 +51,8 @@
 }
 
 .to {
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--ink);
 }
 
 .more {

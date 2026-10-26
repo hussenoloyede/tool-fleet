@@ -1,6 +1,6 @@
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 21rem;
+  grid-template-columns: minmax(0, 1fr) 22rem;
   gap: 1.5rem;
   align-items: start;
 
@@ -10,8 +10,51 @@
 }
 
 .rollout-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-weight: 600;
   white-space: nowrap;
+  color: var(--ink);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.dim-code {
+  color: var(--muted);
+}
+
+.empty {
+  color: var(--muted);
+  padding: 2rem 1.25rem;
+}
+
+.panel {
+  padding: 1.5rem;
+}
+
+.intro {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+}
+
+.submit {
+  padding: 0.65rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footnote {
+  margin: 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--dim);
 }
 
 .nowrap {
@@ -20,8 +63,7 @@
 
 form {
   display: grid;
-  gap: 0.9rem;
-  margin-top: 0.75rem;
+  gap: 1.1rem;
 }
 
 .pair {
@@ -42,9 +84,11 @@ form {
 }
 
 .preview {
-  background: var(--paper);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-line);
   border-radius: var(--radius);
-  padding: 0.6rem 0.8rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
 
   p {
     margin: 0;

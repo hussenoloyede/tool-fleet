@@ -1,21 +1,25 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
-import { CalibrationStatus, errorMessage, FleetApi, Location, Tool } from '../api/fleet-api';
+import { CalibrationStatus, errorMessage, FirmwareRelease, FleetApi, Location, Tool } from '../api/fleet-api';
+import { daysUntil, dueText, newestPerModel, toCsv } from '../shared/fleet-format';
+import { Icon } from '../shared/icon';
 
 @Component({
   selector: 'app-fleet-page',
+  imports: [Icon],
   templateUrl: './fleet-page.html',
   styleUrl: './fleet-page.scss',
 })
 export class FleetPage {
   private readonly api = inject(FleetApi);
+  private readonly today = new Date();
 
   protected readonly model = signal('');
   protected readonly locationId = signal('');
   protected readonly calibration = signal<CalibrationStatus | ''>('');
 
-  /** Every tool, unfiltered: used for the summary line and the model list. */
-  private readonly allTools = httpResource<Tool[]>(() => '/api/tools');
+  /** Every tool, unfiltered: used for the summary cards and the model list. */
+  protected readonly allTools = httpResource<Tool[]>(() => '/api/tools');
 
   /** The filtered list. Filtering happens in the API so the URL is shareable later. */
   protected readonly tools = httpResource<Tool[]>(() => {
@@ -27,17 +31,46 @@ export class FleetPage {
   });
 
   protected readonly locations = httpResource<Location[]>(() => '/api/locations');
+  private readonly releases = httpResource<FirmwareRelease[]>(() => '/api/firmware');
 
-  protected readonly models = computed(() =>
-    [...new Set((this.allTools.hasValue() ? this.allTools.value() : []).map((t) => t.model))].sort(),
+  private readonly every = computed(() => (this.allTools.hasValue() ? this.allTools.value() : []));
+
+  protected readonly models = computed(() => [...new Set(this.every().map((t) => t.model))].sort());
+  protected readonly totalCount = computed(() => this.every().length);
+  protected readonly dueSoon = computed(() => this.every().filter((t) => t.calibrationStatus === 'DueSoon'));
+  protected readonly overdue = computed(() => this.every().filter((t) => t.calibrationStatus === 'Overdue'));
+  protected readonly dueSoonCount = computed(() => this.dueSoon().length);
+  protected readonly overdueCount = computed(() => this.overdue().length);
+
+  protected readonly baseNames = computed(() =>
+    (this.locations.hasValue() ? this.locations.value() : []).map((l) => l.name).join(' · '),
+  );
+  protected readonly country = computed(() => {
+    const countries = new Set((this.locations.hasValue() ? this.locations.value() : []).map((l) => l.country));
+    return countries.size === 1 ? [...countries][0] : `${countries.size} countries`;
+  });
+
+  /** Newest published version of each model. A tool on it gets a cyan version chip. */
+  private readonly newest = computed(
+    () => new Map(newestPerModel(this.releases.hasValue() ? this.releases.value() : []).map((r) => [r.model, r.version])),
   );
 
-  protected readonly overdueCount = computed(
-    () => (this.allTools.hasValue() ? this.allTools.value() : []).filter((t) => t.calibrationStatus === 'Overdue').length,
+  protected readonly onNewestShare = computed(() => {
+    const tools = this.every();
+    if (!tools.length || !this.releases.hasValue()) return null;
+    return Math.round((100 * tools.filter((t) => this.onNewest(t)).length) / tools.length);
+  });
+
+  protected readonly nextDue = computed(() =>
+    this.dueSoon().map((t) => t.calibrationDueOn).sort()[0] ?? null,
   );
 
-  protected readonly totalCount = computed(() => (this.allTools.hasValue() ? this.allTools.value().length : 0));
+  protected readonly longestOverdue = computed(() => {
+    const days = this.overdue().map((t) => -daysUntil(t.calibrationDueOn, this.today));
+    return days.length ? Math.max(...days) : null;
+  });
 
+  protected readonly shown = computed(() => (this.tools.hasValue() ? this.tools.value().length : 0));
   protected readonly filtered = computed(() => !!(this.model() || this.locationId() || this.calibration()));
 
   protected readonly savingId = signal<string | null>(null);
@@ -55,16 +88,58 @@ export class FleetPage {
     Overdue: 'fail',
   };
 
-  protected showOverdue() {
+  protected readonly rowClass: Record<CalibrationStatus, string> = {
+    Ok: '',
+    DueSoon: 'row-warn',
+    Overdue: 'row-fail',
+  };
+
+  protected onNewest(tool: Tool) {
+    return this.newest().get(tool.model) === tool.firmwareVersion;
+  }
+
+  protected newestFor(tool: Tool) {
+    return this.newest().get(tool.model);
+  }
+
+  protected due(tool: Tool) {
+    return dueText(tool.calibrationDueOn, this.today);
+  }
+
+  /** The Due soon and Overdue cards filter the table to those tools. */
+  protected showStatus(status: CalibrationStatus) {
     this.model.set('');
     this.locationId.set('');
-    this.calibration.set('Overdue');
+    this.calibration.set(status);
   }
 
   protected clearFilters() {
     this.model.set('');
     this.locationId.set('');
     this.calibration.set('');
+  }
+
+  /** Downloads the rows currently in the table. */
+  protected exportCsv() {
+    const rows = (this.tools.hasValue() ? this.tools.value() : []).map((t) => [
+      t.serialNumber,
+      t.model,
+      t.locationName,
+      t.firmwareVersion,
+      t.lastCalibratedOn,
+      t.calibrationDueOn,
+      this.statusLabel[t.calibrationStatus],
+    ]);
+    const csv = toCsv(
+      ['Serial', 'Model', 'Base', 'Firmware', 'Last calibrated', 'Calibration due', 'Status'],
+      rows,
+    );
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `toolfleet-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   protected markCalibratedToday(tool: Tool) {

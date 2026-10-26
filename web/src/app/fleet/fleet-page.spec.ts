@@ -34,6 +34,7 @@ describe('FleetPage', () => {
     // The page loads the full list (for the summary) and the filtered list (for the table).
     for (const req of http.match((r) => r.url === '/api/tools')) req.flush(tools);
     http.expectOne('/api/locations').flush([{ id: 'loc-1', name: 'Labuan', country: 'Malaysia' }]);
+    http.expectOne('/api/firmware').flush([]);
   };
 
   it('lists tools and counts the overdue ones', async () => {
@@ -45,8 +46,9 @@ describe('FleetPage', () => {
 
     const page = fixture.nativeElement as HTMLElement;
     expect(page.querySelectorAll('tbody tr').length).toBe(2);
-    expect(page.querySelector('.link-btn.error')?.textContent).toContain('1 overdue');
-    expect(page.querySelector('[data-status="Overdue"]')?.textContent?.trim()).toBe('Overdue');
+    expect(page.querySelector('[data-stat="Overdue"] .stat-value')?.textContent?.trim()).toBe('1');
+    expect(page.querySelector('[data-stat="DueSoon"] .stat-value')?.textContent?.trim()).toBe('0');
+    expect(page.querySelector('.chip[data-status="Overdue"]')?.textContent?.trim()).toBe('Overdue');
   });
 
   it('offers "Calibrated today" only for tools that are due or overdue', async () => {
@@ -72,6 +74,7 @@ describe('FleetPage', () => {
       req.flush('down', { status: 502, statusText: 'Bad Gateway' });
     }
     http.expectOne('/api/locations').flush([]);
+    http.expectOne('/api/firmware').flush([]);
     await fixture.whenStable();
 
     expect((fixture.nativeElement as HTMLElement).querySelector('[role="alert"]')).toBeTruthy();

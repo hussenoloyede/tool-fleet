@@ -2,17 +2,31 @@ import { httpResource } from '@angular/common/http';
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { errorMessage, FirmwareRelease, FleetApi, formatBytes, MAX_FIRMWARE_BYTES, Tool } from '../api/fleet-api';
+import {
+  errorMessage,
+  FirmwareRelease,
+  FleetApi,
+  formatBytes,
+  isFinished,
+  MAX_FIRMWARE_BYTES,
+  RolloutSummary,
+  Tool,
+} from '../api/fleet-api';
+import { Icon } from '../shared/icon';
 
 interface ModelGroup {
   model: string;
   toolCount: number;
+  /** A rollout for this model is running, so "Roll out" would be refused. */
+  rolloutActive: boolean;
+  /** Share of this model's tools on its newest build. */
+  coverage: { percent: number; onNewest: number; version: string };
   releases: { release: FirmwareRelease; onVersion: number }[];
 }
 
 @Component({
   selector: 'app-firmware-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, Icon],
   templateUrl: './firmware-page.html',
   styleUrl: './firmware-page.scss',
 })
@@ -21,6 +35,14 @@ export class FirmwarePage {
 
   protected readonly releases = httpResource<FirmwareRelease[]>(() => '/api/firmware');
   protected readonly tools = httpResource<Tool[]>(() => '/api/tools');
+  private readonly rollouts = httpResource<RolloutSummary[]>(() => '/api/rollouts');
+
+  private readonly activeModels = computed(
+    () =>
+      new Set(
+        (this.rollouts.hasValue() ? this.rollouts.value() : []).filter((r) => !isFinished(r.status)).map((r) => r.model),
+      ),
+  );
 
   protected readonly models = computed(() =>
     [...new Set((this.tools.hasValue() ? this.tools.value() : []).map((t) => t.model))].sort(),
@@ -38,15 +60,23 @@ export class FirmwarePage {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([model, releases]) => {
         const modelTools = tools.filter((t) => t.model === model);
+        const rows = releases
+          .sort((a, b) => b.publishedAtUtc.localeCompare(a.publishedAtUtc))
+          .map((release) => ({
+            release,
+            onVersion: modelTools.filter((t) => t.firmwareVersion === release.version).length,
+          }));
+        const newest = rows[0];
         return {
           model,
           toolCount: modelTools.length,
-          releases: releases
-            .sort((a, b) => b.publishedAtUtc.localeCompare(a.publishedAtUtc))
-            .map((release) => ({
-              release,
-              onVersion: modelTools.filter((t) => t.firmwareVersion === release.version).length,
-            })),
+          rolloutActive: this.activeModels().has(model),
+          coverage: {
+            percent: modelTools.length ? Math.round((100 * newest.onVersion) / modelTools.length) : 0,
+            onNewest: newest.onVersion,
+            version: newest.release.version,
+          },
+          releases: rows,
         };
       });
   });
@@ -61,6 +91,18 @@ export class FirmwarePage {
   protected readonly maxSize = formatBytes(MAX_FIRMWARE_BYTES);
 
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  private readonly modelSelect = viewChild<ElementRef<HTMLSelectElement>>('modelSelect');
+
+  /** The "Publish build" button at the top jumps to the form. */
+  protected focusPublish() {
+    const select = this.modelSelect()?.nativeElement;
+    select?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    select?.focus({ preventScroll: true });
+  }
+
+  protected percent(part: number, whole: number) {
+    return whole ? Math.round((100 * part) / whole) : 0;
+  }
   protected readonly file = signal<File | null>(null);
   protected readonly fileError = signal<string | null>(null);
 

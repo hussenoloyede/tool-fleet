@@ -7,6 +7,7 @@ import { startWith } from 'rxjs';
 import { errorMessage, FirmwareRelease, FleetApi, isFinished, RolloutSummary, Tool } from '../api/fleet-api';
 import { RolloutStatusChip } from './rollout-status-chip';
 import { StageBar } from './stage-bar';
+import { newestPerModel } from '../shared/fleet-format';
 
 /** Same rule as Rollout.CanarySize in the domain: percentage rounded up, at least one tool. */
 export const canarySize = (targets: number, percent: number) =>
@@ -101,12 +102,4 @@ export class RolloutsPage implements OnInit {
   }
 }
 
-/** The most recently published build of each model, sorted by model name. */
-export function newestPerModel(releases: FirmwareRelease[]): FirmwareRelease[] {
-  const newest = new Map<string, FirmwareRelease>();
-  for (const r of releases) {
-    const current = newest.get(r.model);
-    if (!current || r.publishedAtUtc > current.publishedAtUtc) newest.set(r.model, r);
-  }
-  return [...newest.values()].sort((a, b) => a.model.localeCompare(b.model));
-}
+export { newestPerModel } from '../shared/fleet-format';

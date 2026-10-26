@@ -1,58 +1,54 @@
-// ToolFleet visual tokens.
-// Rig-site vernacular: steel-blue ink on cool paper, safety yellow for "needs a person",
-// hazard tape for "stopped". Status colours are reserved for status and nothing else.
+// ToolFleet design system, taken from the Figma Fleet and Firmware pages.
+// Deep navy surfaces, cyan for the one thing that matters on a row, monospace for anything a machine
+// produced (serials, versions, hashes, dates, labels). Green, amber and rose are kept for status only.
 
 :root {
-  color-scheme: light;
-  --paper: #eef1f3;
-  --surface: #ffffff;
-  --ink: #17232c;
-  --muted: #5a6872;
-  --line: #d3dade;
-  --line-strong: #aeb9c0;
-  --steel: #1d4a66;
-  --steel-ink: #ffffff;
-  --focus: #2a7fd4;
+  color-scheme: dark;
 
-  --ok: #23774a;
-  --ok-fill: #3aa169;
-  --ok-bg: #dcefe3;
-  --fail: #b3261e;
-  --fail-fill: #d6453b;
-  --fail-bg: #f8dcd9;
-  --wait: #7a5a00;
-  --wait-bg: #fff1c2;
-  --safety: #f5c400;
-  --pending-fill: #c9d1d6;
+  --bg: #0a0f1a;
+  --bg-raised: #0d1422;
+  --surface: #0f1726;
+  --surface-2: #141d2e;
+  --line: #1d283a;
+  --line-strong: #2a3850;
 
+  --ink: #e2e8f0;
+  --muted: #94a3b8;
+  --dim: #64748b;
+
+  --accent: #22d3ee;
+  --accent-strong: #06b6d4;
+  --accent-ink: #03141a;
+  --accent-bg: rgb(34 211 238 / 0.1);
+  --accent-line: rgb(34 211 238 / 0.35);
+
+  --ok: #34d399;
+  --ok-fill: #10b981;
+  --ok-bg: rgb(52 211 153 / 0.1);
+  --ok-line: rgb(52 211 153 / 0.35);
+  --warn: #fbbf24;
+  --warn-fill: #f59e0b;
+  --warn-bg: rgb(251 191 36 / 0.08);
+  --warn-line: rgb(251 191 36 / 0.4);
+  --fail: #fb7185;
+  --fail-fill: #f43f5e;
+  --fail-bg: rgb(251 113 133 / 0.08);
+  --fail-line: rgb(251 113 133 / 0.4);
+  --pending-fill: #263247;
+
+  --focus: #67e8f9;
   --radius: 6px;
-  --font: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-narrow: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
-}
+  --radius-lg: 12px;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #12181d;
-    --surface: #1a2229;
-    --ink: #e6ebee;
-    --muted: #97a4ad;
-    --line: #2b363e;
-    --line-strong: #43515b;
-    --steel: #6fb0d8;
-    --steel-ink: #0c1a24;
-    --focus: #8cc4ff;
-
-    --ok: #7fd3a0;
-    --ok-fill: #3aa169;
-    --ok-bg: #163324;
-    --fail: #ff958c;
-    --fail-fill: #d6453b;
-    --fail-bg: #3d1714;
-    --wait: #f5d36b;
-    --wait-bg: #3a2f08;
-    --pending-fill: #3a4650;
-  }
+  // Older names still used in a few component styles.
+  --paper: var(--bg-raised);
+  --steel: var(--accent);
+  --steel-ink: var(--accent-ink);
+  --wait: var(--warn);
+  --wait-bg: var(--warn-bg);
+  --safety: #fbbf24;
 }
 
 *,
@@ -64,37 +60,55 @@
 body {
   margin: 0;
   font-family: var(--font);
-  font-size: 1rem;
-  line-height: 1.5;
-  background: var(--paper);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  background: var(--bg);
   color: var(--ink);
+  -webkit-font-smoothing: antialiased;
   font-variant-numeric: tabular-nums;
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--font-narrow);
-  font-weight: 600;
-  line-height: 1.15;
+  font-family: var(--font);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
   margin: 0;
 }
 
 h1 {
   font-size: 2rem;
+  letter-spacing: -0.025em;
 }
 
 h2 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
 }
 
 a {
-  color: var(--steel);
+  color: var(--accent);
+  text-underline-offset: 0.2em;
+}
+
+code,
+.mono {
+  font-family: var(--mono);
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+::selection {
+  background: rgb(34 211 238 / 0.3);
 }
 
 // ---- page scaffolding ----
@@ -102,102 +116,163 @@ a {
 .page-head {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem 1.5rem;
-  margin-bottom: 1.25rem;
+  gap: 1rem 2rem;
+  margin-bottom: 1.75rem;
 }
 
 .page-head p {
-  margin: 0.25rem 0 0;
+  margin: 0.4rem 0 0;
   color: var(--muted);
+  max-width: 46rem;
+}
+
+.head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding-top: 0.25rem;
 }
 
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 1rem 0;
 }
 
 .muted {
   color: var(--muted);
 }
 
+.dim {
+  color: var(--dim);
+}
+
 .error {
   color: var(--fail);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+// Small uppercase monospace label, used for table headers, field labels and card titles.
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 // ---- buttons ----
 
 .btn {
   font: inherit;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1rem;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
   border-radius: var(--radius);
   border: 1px solid var(--line-strong);
-  background: var(--surface);
+  background: var(--bg-raised);
   color: var(--ink);
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
 
   &:hover:not(:disabled) {
-    border-color: var(--ink);
+    border-color: var(--muted);
+    background: var(--surface-2);
   }
 
   &:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    flex: none;
   }
 }
 
 .btn-primary {
-  background: var(--steel);
-  border-color: var(--steel);
-  color: var(--steel-ink);
+  background: linear-gradient(180deg, #22d3ee, var(--accent-strong));
+  border-color: var(--accent-strong);
+  color: var(--accent-ink);
+  font-weight: 600;
 
   &:hover:not(:disabled) {
-    border-color: var(--steel);
-    filter: brightness(1.1);
+    background: linear-gradient(180deg, #67e8f9, #22d3ee);
+    border-color: #22d3ee;
   }
 }
 
-// Promotion is the one decision a person must make, so it gets safety yellow.
+// Promotion is the one decision a person must make, so it gets amber.
 .btn-approve {
-  background: var(--safety);
-  border-color: #c79f00;
-  color: #1a1400;
+  background: var(--warn);
+  border-color: var(--warn-fill);
+  color: #1c1300;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background: #fcd34d;
+    border-color: var(--warn);
+  }
 }
 
 .btn-danger {
   color: var(--fail);
-  border-color: currentColor;
+  border-color: var(--fail-line);
+  background: transparent;
+
+  &:hover:not(:disabled) {
+    background: var(--fail-bg);
+    border-color: var(--fail);
+  }
+}
+
+.btn.small {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.btn.block {
+  width: 100%;
 }
 
 // Small inline button that reads as a link.
 .link-btn {
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   background: none;
   border: 0;
   padding: 0;
   cursor: pointer;
-  color: var(--steel);
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 0.2em;
 
   &.error {
     color: var(--fail);
   }
-}
-
-.btn.small {
-  padding: 0.2rem 0.6rem;
-  font-size: 0.875rem;
-  white-space: nowrap;
 }
 
 .visually-hidden {
@@ -213,27 +288,80 @@ a {
 
 .field {
   display: grid;
-  gap: 0.3rem;
-  font-weight: 600;
-  font-size: 0.9rem;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
 
   input,
   select,
   textarea {
-    font: inherit;
+    font-family: var(--font);
+    font-size: 0.9rem;
     font-weight: 400;
-    font-size: 1rem;
-    padding: 0.45rem 0.6rem;
+    letter-spacing: normal;
+    text-transform: none;
+    padding: 0.55rem 0.75rem;
     border-radius: var(--radius);
     border: 1px solid var(--line-strong);
-    background: var(--surface);
+    background: var(--bg-raised);
     color: var(--ink);
     min-width: 0;
+
+    &::placeholder {
+      color: var(--dim);
+    }
+
+    &:hover {
+      border-color: #3b4c66;
+    }
+  }
+
+  select {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1rem;
   }
 
   .hint {
-    font-weight: 400;
-    color: var(--muted);
+    font-family: var(--font);
+    font-size: 0.8rem;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--dim);
+  }
+
+  .error {
+    font-family: var(--font);
+    font-size: 0.8rem;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+}
+
+// Label on the left, a small note on the right ("x.y.z").
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+
+  .req {
+    color: var(--accent);
+    margin-left: 0.3rem;
+  }
+
+  .note {
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--dim);
   }
 }
 
@@ -243,7 +371,7 @@ a {
   overflow-x: auto;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 table.data {
@@ -253,9 +381,9 @@ table.data {
   th,
   td {
     text-align: left;
-    padding: 0.55rem 0.9rem;
+    padding: 0.85rem 1.25rem;
     border-bottom: 1px solid var(--line);
-    vertical-align: top;
+    vertical-align: middle;
   }
 
   tbody tr:last-child td {
@@ -263,65 +391,239 @@ table.data {
   }
 
   th {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--muted);
-    background: var(--paper);
+    background: var(--bg-raised);
     white-space: nowrap;
   }
+
+  tbody tr {
+    transition: background-color 120ms ease;
+  }
+
+  tbody tr:hover td {
+    background: rgb(148 163 184 / 0.04);
+  }
+
+  tr.row-warn td {
+    background: var(--warn-bg);
+  }
+
+  tr.row-fail td {
+    background: var(--fail-bg);
+  }
 }
 
+// Anything machine-made: serials, versions, hashes, dates.
 .code {
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 0.875rem;
   white-space: nowrap;
 }
 
-// ---- status chips ----
+.sub {
+  display: block;
+  font-family: var(--font);
+  font-size: 0.75rem;
+  color: var(--dim);
+  margin-top: 0.1rem;
+}
 
+// ---- chips, tags and pills ----
+
+// Status: a pill with a dot.
 .chip {
-  display: inline-block;
-  padding: 0.1rem 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.6rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   white-space: nowrap;
-  background: var(--paper);
   color: var(--muted);
-  border: 1px solid var(--line);
+  background: rgb(148 163 184 / 0.08);
+  border: 1px solid var(--line-strong);
+
+  &::before {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
 
   &.ok {
-    background: var(--ok-bg);
     color: var(--ok);
-    border-color: transparent;
+    background: var(--ok-bg);
+    border-color: var(--ok-line);
   }
   &.fail {
-    background: var(--fail-bg);
     color: var(--fail);
-    border-color: transparent;
+    background: var(--fail-bg);
+    border-color: var(--fail-line);
   }
   &.wait {
-    background: var(--wait-bg);
-    color: var(--wait);
-    border-color: transparent;
+    color: var(--warn);
+    background: var(--warn-bg);
+    border-color: var(--warn-line);
   }
   &.live {
-    background: var(--steel);
-    color: var(--steel-ink);
-    border-color: transparent;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-color: var(--accent-line);
+  }
+}
+
+// Label: square corners, no dot.
+.tag {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted);
+  background: rgb(148 163 184 / 0.08);
+  border: 1px solid var(--line-strong);
+
+  &.accent {
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-color: var(--accent-line);
+  }
+  &.ok {
+    color: var(--ok);
+    background: var(--ok-bg);
+    border-color: var(--ok-line);
+  }
+  &.warn {
+    color: var(--warn);
+    background: var(--warn-bg);
+    border-color: var(--warn-line);
+  }
+  &.fail {
+    color: var(--fail);
+    background: var(--fail-bg);
+    border-color: var(--fail-line);
+  }
+  &.plain {
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 0.75rem;
+  }
+}
+
+// A place name.
+.pill {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+// A firmware version. Cyan when it is the newest build, grey when the tool is behind.
+.ver {
+  display: inline-block;
+  padding: 0.08rem 0.55rem;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--muted);
+  background: rgb(148 163 184 / 0.08);
+  border: 1px solid var(--line-strong);
+
+  &.current {
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-color: var(--accent-line);
+  }
+
+  &.lg {
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius);
+    color: var(--ink);
+  }
+
+  &.lg.current {
+    color: var(--accent);
+  }
+}
+
+// A status dot on its own, before a heading.
+.dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--dim);
+  flex: none;
+
+  &.ok {
+    background: var(--ok);
+    box-shadow: 0 0 0 3px var(--ok-bg);
+  }
+  &.live {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+  &.warn {
+    background: var(--warn);
+    box-shadow: 0 0 0 3px var(--warn-bg);
+  }
+}
+
+// Thin progress bar under a count.
+.meter {
+  display: block;
+  width: 6rem;
+  height: 0.3rem;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: var(--pending-fill);
+  overflow: hidden;
+
+  > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+  }
+
+  &.full > span {
+    background: var(--ok);
   }
 }
 
 // Hazard tape: used only when a rollout has been stopped.
 .hazard {
-  border-radius: var(--radius);
-  padding: 6px;
+  border-radius: var(--radius-lg);
+  padding: 5px;
   background: repeating-linear-gradient(-45deg, var(--safety) 0 14px, #1a1400 14px 28px);
 
   > .hazard-body {
     background: var(--surface);
-    border-radius: 3px;
-    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    padding: 0.9rem 1.15rem;
   }
 }
 
