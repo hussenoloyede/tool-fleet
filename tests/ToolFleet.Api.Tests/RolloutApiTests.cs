@@ -17,6 +17,7 @@ public class RolloutApiTests(FleetApiFactory factory) : IClassFixture<FleetApiFa
         Converters = { new JsonStringEnumConverter() },
     };
 
+    private readonly FleetApiFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
@@ -98,12 +99,39 @@ public class RolloutApiTests(FleetApiFactory factory) : IClassFixture<FleetApiFa
         var model = UniqueModel();
         await RegisterFleetAsync(model, count: 3);
         var first = await PublishAsync(model, "4.2.0");
-        var second = await PublishAsync(model, "4.3.0");
         await CreateRolloutAsync(first.Id, canaryPercent: 10, threshold: 20);
+        var second = await PublishAsync(model, "4.3.0");
 
         var response = await _client.PostAsJsonAsync("/api/rollouts", new CreateRolloutRequest(second.Id, 10, 20), Json);
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Only_the_newest_build_can_be_rolled_out()
+    {
+        var model = UniqueModel();
+        await RegisterFleetAsync(model, count: 3);
+        var older = await PublishAsync(model, "4.2.0");
+        await PublishAsync(model, "4.3.0");
+
+        var response = await _client.PostAsJsonAsync("/api/rollouts", new CreateRolloutRequest(older.Id, 10, 20), Json);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Contains("Roll out 4.3.0 instead", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Build_without_a_file_cannot_be_rolled_out()
+    {
+        var model = UniqueModel();
+        await RegisterFleetAsync(model, count: 3);
+        var baseline = _factory.AddReleaseWithoutFile(model, "4.2.0");
+
+        var response = await _client.PostAsJsonAsync("/api/rollouts", new CreateRolloutRequest(baseline.Id, 10, 20), Json);
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Contains("no firmware file", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -157,8 +185,12 @@ public class RolloutApiTests(FleetApiFactory factory) : IClassFixture<FleetApiFa
         return tools;
     }
 
-    private Task<FirmwareReleaseDto> PublishAsync(string model, string version) =>
-        PostAsync<FirmwareReleaseDto>("/api/firmware", new CreateFirmwareReleaseRequest(model, version, "Test build"));
+    private async Task<FirmwareReleaseDto> PublishAsync(string model, string version)
+    {
+        var response = await FirmwareUpload.PublishAsync(_client, model, version, FirmwareUpload.FakeBuild());
+        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+        return (await response.Content.ReadFromJsonAsync<FirmwareReleaseDto>(Json))!;
+    }
 
     private Task<RolloutDetailDto> CreateRolloutAsync(Guid releaseId, int canaryPercent, int threshold) =>
         PostAsync<RolloutDetailDto>("/api/rollouts", new CreateRolloutRequest(releaseId, canaryPercent, threshold));

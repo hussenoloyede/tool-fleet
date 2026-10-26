@@ -31,6 +31,27 @@
 
 .actions {
   text-align: right;
+  white-space: nowrap;
+
+  .btn + .btn {
+    margin-left: 0.4rem;
+  }
+}
+
+.file {
+  .code {
+    overflow-wrap: anywhere;
+  }
+}
+
+.file-facts {
+  display: block;
+  font-size: 0.85rem;
+
+  abbr {
+    text-decoration: none;
+    cursor: help;
+  }
 }
 
 .publish form {

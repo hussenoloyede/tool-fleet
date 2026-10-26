@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ToolFleet.Api.Data;
 using ToolFleet.Api.Endpoints;
 using ToolFleet.Api.Infrastructure;
+using ToolFleet.Api.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,10 @@ builder.Services.AddDbContext<FleetDbContext>(options =>
         // Azure SQL's free tier pauses when idle and takes a few seconds to wake; retry instead of failing.
         options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure());
 });
+
+// Firmware files go to Azure Blob Storage (Azurite on a developer PC). See docs/azure-setup.md.
+builder.Services.Configure<FirmwareStorageOptions>(builder.Configuration.GetSection(FirmwareStorageOptions.Section));
+builder.Services.AddSingleton<IFirmwareStore, BlobFirmwareStore>();
 
 var app = builder.Build();
 

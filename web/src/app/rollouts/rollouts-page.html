@@ -55,12 +55,11 @@
         Firmware build
         <select formControlName="firmwareReleaseId">
           <option value="" disabled>Choose a build</option>
-          @if (releases.hasValue()) {
-            @for (r of releases.value(); track r.id) {
-              <option [value]="r.id">{{ releaseLabel(r) }}</option>
-            }
+          @for (r of rollableReleases(); track r.id) {
+            <option [value]="r.id">{{ releaseLabel(r) }}</option>
           }
         </select>
+        <span class="hint">Only the newest build of each model, once its file is uploaded.</span>
         @if (form.controls.firmwareReleaseId.touched && form.controls.firmwareReleaseId.invalid) {
           <span class="error">Choose a firmware build.</span>
         }

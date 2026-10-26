@@ -46,9 +46,14 @@ export class RolloutsPage implements OnInit {
       ),
   );
 
+  /** The builds that can go out: the newest of each model, and only if its file was uploaded. The API enforces the same rule. */
+  protected readonly rollableReleases = computed(() =>
+    newestPerModel(this.releases.hasValue() ? this.releases.value() : []).filter((r) => r.file !== null),
+  );
+
   protected readonly selectedRelease = computed(() => {
     const id = this.formValue().firmwareReleaseId;
-    return (this.releases.hasValue() ? this.releases.value() : []).find((r) => r.id === id) ?? null;
+    return this.rollableReleases().find((r) => r.id === id) ?? null;
   });
 
   /** What the rollout would cover, so nobody is surprised after pressing Create. */
@@ -94,4 +99,14 @@ export class RolloutsPage implements OnInit {
       },
     });
   }
+}
+
+/** The most recently published build of each model, sorted by model name. */
+export function newestPerModel(releases: FirmwareRelease[]): FirmwareRelease[] {
+  const newest = new Map<string, FirmwareRelease>();
+  for (const r of releases) {
+    const current = newest.get(r.model);
+    if (!current || r.publishedAtUtc > current.publishedAtUtc) newest.set(r.model, r);
+  }
+  return [...newest.values()].sort((a, b) => a.model.localeCompare(b.model));
 }

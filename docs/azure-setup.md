@@ -9,10 +9,11 @@ One-time setup for the live demo. Everything sits in one resource group, so dele
 | Azure SQL database | `toolfleet` | Free offer, serverless | Free; pauses for the rest of the month if the free allowance runs out |
 | App Service plan | `toolfleet-plan` | Linux, Free F1 | Free (B1 is about US$13 a month if F1 isn't available) |
 | Web app | `toolfleet-hussein` | .NET 10 | Included in the plan |
+| Storage account | `toolfleethussein` | Standard, LRS, Hot | A few cents a month for a handful of firmware files, taken from the credit |
 
-Put the database and the web app in **East Asia**. Azure for Students only allows a set of regions (Policy → Assignments → *Allowed resource deployment regions* lists them); Southeast Asia isn't one of them, and East Asia is the closest that is. The resource group itself can be in any region.
+Put the database, the web app and the storage account in **East Asia**. Azure for Students only allows a set of regions (Policy → Assignments → *Allowed resource deployment regions* lists them); Southeast Asia isn't one of them, and East Asia is the closest that is. The resource group itself can be in any region.
 
-The web app reaches the database with its managed identity, an identity Azure gives the app itself. There is no database password anywhere: not in the code, not in the pipeline, not in App Service settings.
+The web app reaches the database and the firmware files with its managed identity, an identity Azure gives the app itself. There is no database password or storage key anywhere: not in the code, not in the pipeline, not in App Service settings.
 
 ## 1. Resource group
 
@@ -66,7 +67,38 @@ ALTER ROLE db_ddladmin ADD MEMBER [toolfleet-hussein];
 
 `db_ddladmin` lets the app create its tables when it applies migrations on startup.
 
-## 5. Service connection for the pipeline
+## 5. Storage for firmware files
+
+Uploaded firmware builds live in Azure Blob Storage. Tools never get direct access to the storage account; they ask the API for a download link that is signed for one file, read-only, and stops working after 15 minutes.
+
+Portal → Storage accounts → Create.
+
+- Resource group `toolfleet-rg`. Name `toolfleethussein`: lowercase letters and numbers only, and unique across all of Azure, so add a digit or two if it's taken.
+- Region **East Asia**. Primary service **Azure Blob Storage or Azure Data Lake Storage Gen 2**. Performance **Standard**. Redundancy **Locally-redundant storage (LRS)**.
+- Advanced tab:
+  - Require secure transfer: **on**.
+  - Allow enabling anonymous access on individual containers: **off**.
+  - Enable storage account key access: **off**. The app signs download links with a short-lived key it gets through its managed identity, so the account key is never needed.
+  - Default to Microsoft Entra authorization in the Azure portal: **on**.
+  - Minimum TLS version: **1.2**.
+- Review + create.
+
+When it's created, open the storage account:
+
+1. **Data storage → Containers → + Container**. Name `firmware`, anonymous access level **Private**. Create.
+2. **Access control (IAM) → Add → Add role assignment**.
+   - Role: **Storage Blob Data Contributor**. Next.
+   - Assign access to **Managed identity** → **+ Select members** → Managed identity **App Service** → `toolfleet-hussein` → Select.
+   - Review + assign. It can take a few minutes to start working.
+   - Optional: repeat with **Storage Blob Data Reader** for your own account (User, group, or service principal), so you can see the uploaded files in the portal.
+
+Then open the web app → **Settings → Environment variables** → App settings tab, add:
+
+- `FirmwareStorage__ServiceUri` = `https://toolfleethussein.blob.core.windows.net` (use your storage account's name)
+
+Apply, then Confirm. The app restarts with the new setting.
+
+## 6. Service connection for the pipeline
 
 Azure DevOps → ToolFleet project → **Project settings → Service connections → New service connection**.
 
@@ -75,7 +107,7 @@ Azure DevOps → ToolFleet project → **Project settings → Service connection
 - Name: `toolfleet-azure`.
 - Tick **Grant access permission to all pipelines** → Save.
 
-## 6. Deploy
+## 7. Deploy
 
 Before the first deploy, create the environment the Deploy stage targets: Azure DevOps → Pipelines → Environments → **New environment**, name `production`, resource **None**. Open it, then ⋮ → **Security** → Pipeline permissions → **+** and add the ToolFleet pipeline. Without this the run fails with "Environment production could not be found".
 
@@ -85,6 +117,6 @@ New App Service apps get a unique address with a random suffix, so `toolfleet-hu
 
 https://toolfleet-hussein-euf6h0g7bxbrhabk.eastasia-01.azurewebsites.net
 
-Quick checks once it's deployed: `/health` should say `Healthy`, and `/api/tools` should list 40 tools. If either fails, open the web app → Monitoring → **Log stream** and reload the page to see the error.
+Quick checks once it's deployed: `/health` should say `Healthy`, and `/api/tools` should list 40 tools. On the Firmware page, publish a small test file and press Download. If either fails, open the web app → Monitoring → **Log stream** and reload the page to see the error.
 
 The first page load after a quiet spell is slow: the F1 app and the free database both go to sleep when idle.

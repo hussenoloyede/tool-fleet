@@ -42,12 +42,19 @@ public sealed record CreateToolRequest(
 
 public sealed record RecordCalibrationRequest(DateOnly CalibratedOn);
 
-public sealed record FirmwareReleaseDto(Guid Id, string Model, string Version, string Notes, DateTime PublishedAtUtc)
+public sealed record FirmwareReleaseDto(
+    Guid Id, string Model, string Version, string Notes, DateTime PublishedAtUtc, FirmwareFileDto? File)
 {
-    public static FirmwareReleaseDto From(FirmwareRelease r) => new(r.Id, r.Model, r.Version, r.Notes, r.PublishedAtUtc);
+    public static FirmwareReleaseDto From(FirmwareRelease r) => new(
+        r.Id, r.Model, r.Version, r.Notes, r.PublishedAtUtc,
+        r.HasFile ? new FirmwareFileDto(r.FileName!, r.FileSizeBytes!.Value, r.FileSha256!) : null);
 }
 
-public sealed record CreateFirmwareReleaseRequest(string Model, string Version, string? Notes);
+/// <summary>Null File on a release means it was never uploaded (the demo fleet's baseline builds).</summary>
+public sealed record FirmwareFileDto(string FileName, long SizeBytes, string Sha256);
+
+/// <summary>A download link that stops working at ExpiresAtUtc. Check the file against Sha256 before using it.</summary>
+public sealed record FirmwareDownloadDto(string Url, DateTime ExpiresAtUtc, string FileName, long SizeBytes, string Sha256);
 
 public sealed record CreateRolloutRequest(Guid FirmwareReleaseId, int CanaryPercent, int FailureThresholdPercent);
 

@@ -59,6 +59,9 @@ public class FleetDbContext(
             e.Property(x => x.Model).HasMaxLength(60);
             e.Property(x => x.Version).HasMaxLength(20);
             e.Property(x => x.Notes).HasMaxLength(2000);
+            e.Property(x => x.FileName).HasMaxLength(100);
+            e.Property(x => x.FileSha256).HasMaxLength(64).IsFixedLength();
+            e.Property(x => x.FileStorageName).HasMaxLength(200);
             e.HasIndex(x => new { x.Model, x.Version }).IsUnique();
         });
 

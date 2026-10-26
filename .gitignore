@@ -485,3 +485,8 @@ $RECYCLE.BIN/
 *.db
 *.db-shm
 *.db-wal
+
+# Azurite (local Blob Storage) data
+.azurite/
+__azurite_db*
+__blobstorage__/

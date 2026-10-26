@@ -2,9 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { RolloutDetail, RolloutStatus, RolloutTarget } from '../api/fleet-api';
+import { FirmwareRelease, RolloutDetail, RolloutStatus, RolloutTarget } from '../api/fleet-api';
 import { RolloutDetailPage } from './rollout-detail-page';
-import { canarySize } from './rollouts-page';
+import { canarySize, newestPerModel } from './rollouts-page';
 
 const target = (serial: string, stage: 'Canary' | 'Full', status: RolloutTarget['status'] = 'Pending'): RolloutTarget => ({
   toolId: `tool-${serial}`,
@@ -136,5 +136,26 @@ describe('canarySize', () => {
     expect(canarySize(25, 10)).toBe(3);
     expect(canarySize(3, 10)).toBe(1);
     expect(canarySize(0, 10)).toBe(0);
+  });
+});
+
+describe('newestPerModel', () => {
+  const build = (model: string, version: string, publishedAtUtc: string): FirmwareRelease => ({
+    id: `${model}-${version}`,
+    model,
+    version,
+    notes: '',
+    publishedAtUtc,
+    file: null,
+  });
+
+  it('keeps only the most recently published build of each model', () => {
+    const result = newestPerModel([
+      build('MWD Pulser', '4.2.0', '2026-10-01T00:00:00Z'),
+      build('MWD Pulser', '4.3.0', '2026-10-20T00:00:00Z'),
+      build('Gamma Ray Sub', '2.3.1', '2026-04-01T00:00:00Z'),
+    ]);
+
+    expect(result.map((r) => r.id)).toEqual(['Gamma Ray Sub-2.3.1', 'MWD Pulser-4.3.0']);
   });
 });

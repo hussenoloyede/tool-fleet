@@ -25,12 +25,39 @@ export interface Tool {
   calibrationStatus: CalibrationStatus;
 }
 
+export interface FirmwareFile {
+  fileName: string;
+  sizeBytes: number;
+  sha256: string;
+}
+
 export interface FirmwareRelease {
   id: string;
   model: string;
   version: string;
   notes: string;
   publishedAtUtc: string;
+  /** Null for the baseline builds the demo fleet shipped with; every published build has one. */
+  file: FirmwareFile | null;
+}
+
+/** A short-lived link to a firmware file. */
+export interface FirmwareDownload {
+  url: string;
+  expiresAtUtc: string;
+  fileName: string;
+  sizeBytes: number;
+  sha256: string;
+}
+
+/** Matches FirmwareStorage:MaxFileBytes in the API. */
+export const MAX_FIRMWARE_BYTES = 50 * 1024 * 1024;
+
+/** 512 bytes, 3.4 KB, 12.5 MB. */
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} bytes`;
+  const [value, unit] = bytes < 1024 * 1024 ? [bytes / 1024, 'KB'] : [bytes / (1024 * 1024), 'MB'];
+  return `${Number(value.toFixed(1))} ${unit}`;
 }
 
 export type RolloutStatus =
@@ -122,6 +149,7 @@ export const statusLabel: Record<RolloutStatus, string> = {
 export function errorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0) return "Couldn't reach the API. Check that it's running on http://localhost:5080.";
+    if (error.status === 413) return `The file is too big. The limit is ${formatBytes(MAX_FIRMWARE_BYTES)}.`;
     const body = error.error;
     if (body?.detail) return body.detail;
     if (body?.errors) return Object.values(body.errors as Record<string, string[]>).flat().join(' ');
@@ -136,8 +164,18 @@ export function errorMessage(error: unknown): string {
 export class FleetApi {
   private readonly http = inject(HttpClient);
 
-  publishFirmware(body: { model: string; version: string; notes: string }): Observable<FirmwareRelease> {
-    return this.http.post<FirmwareRelease>('/api/firmware', body);
+  /** Sends the build as a multipart form: the three fields plus the file. */
+  publishFirmware(body: { model: string; version: string; notes: string; file: File }): Observable<FirmwareRelease> {
+    const form = new FormData();
+    form.append('model', body.model);
+    form.append('version', body.version);
+    form.append('notes', body.notes);
+    form.append('file', body.file, body.file.name);
+    return this.http.post<FirmwareRelease>('/api/firmware', form);
+  }
+
+  firmwareDownload(releaseId: string): Observable<FirmwareDownload> {
+    return this.http.get<FirmwareDownload>(`/api/firmware/${releaseId}/download`);
   }
 
   createRollout(body: { firmwareReleaseId: string; canaryPercent: number; failureThresholdPercent: number }) {

@@ -33,6 +33,19 @@ public static class RolloutEndpoints
             var release = await db.FirmwareReleases.FindAsync([request.FirmwareReleaseId], ct)
                 ?? throw new DomainException("Unknown firmware release.");
 
+            // Rolling out an older build would downgrade tools, so only the newest build of a model can go out.
+            var newer = await db.FirmwareReleases
+                .Where(r => r.Model == release.Model && r.PublishedAtUtc > release.PublishedAtUtc)
+                .OrderByDescending(r => r.PublishedAtUtc)
+                .Select(r => r.Version)
+                .FirstOrDefaultAsync(ct);
+            if (newer is not null)
+                throw new DomainException($"{release.Model} {release.Version} isn't the newest build. Roll out {newer} instead.");
+
+            if (!release.HasFile)
+                throw new DomainException(
+                    $"{release.Model} {release.Version} has no firmware file, so tools would have nothing to download. Publish a build with its file.");
+
             var activeForModel = await db.Rollouts.AnyAsync(r =>
                 r.Model == release.Model &&
                 r.Status != RolloutStatus.Completed &&

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ToolFleet.Api.Data;
+using ToolFleet.Api.Storage;
+using ToolFleet.Domain;
 
 namespace ToolFleet.Api.Tests;
 
@@ -24,11 +27,19 @@ public sealed class FleetApiFactory : WebApplicationFactory<Program>
         _keepAlive.Open();
     }
 
+    /// <summary>Uploaded firmware files end up here instead of Blob Storage.</summary>
+    public InMemoryFirmwareStore Store { get; } = new();
+
+    /// <summary>Kept small so the "file too big" test doesn't need a 50 MB upload.</summary>
+    public const long MaxFileBytes = 64 * 1024;
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("Database:Provider", "Sqlite");
         builder.UseSetting("ConnectionStrings:Fleet", _connectionString);
+        builder.UseSetting("FirmwareStorage:MaxFileBytes", MaxFileBytes.ToString());
+        builder.ConfigureTestServices(services => services.AddSingleton<IFirmwareStore>(Store));
     }
 
     protected override IHost CreateHost(IHostBuilder builder)
@@ -39,6 +50,17 @@ public sealed class FleetApiFactory : WebApplicationFactory<Program>
         scope.ServiceProvider.GetRequiredService<FleetDbContext>().Database.EnsureCreated();
 
         return host;
+    }
+
+    /// <summary>A build with no file, like the seeded baseline versions. The API can't create one.</summary>
+    public FirmwareRelease AddReleaseWithoutFile(string model, string version)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<FleetDbContext>();
+        var release = new FirmwareRelease(model, version, "Baseline", DateTime.UtcNow);
+        db.FirmwareReleases.Add(release);
+        db.SaveChanges();
+        return release;
     }
 
     protected override void Dispose(bool disposing)

@@ -2,7 +2,7 @@
 
 Project 2 of the SWE internship portfolio plan. A web app for tracking downhole tools across field bases and rolling out firmware to them in stages, so a bad release is caught on a few tools before it reaches the whole fleet.
 
-Status: weeks 1 and 2 are done. The demo story below runs on localhost with the in-page simulator. Weeks 3 and 4 add the real firmware file and the field agent that delivers it.
+Status: weeks 1 to 3 are done. The demo runs live on Azure with the in-page simulator, and every build is published with its real file. Week 4 adds the field agent that delivers it.
 
 ## The demo story
 
@@ -50,12 +50,12 @@ The agent asks for work and the server never pushes to it, because bases sit beh
 
 ### Firmware releases
 - A release belongs to one tool model and has a version and release notes. Version strings are unique per model. (done)
-- Publishing a release uploads the build file. (week 3)
-  - Stored in Azure Blob Storage in a private container; locally in Azurite, the Blob Storage emulator, running in Docker next to SQL Server.
+- Publishing a release uploads the build file. (done in week 3)
+  - Stored in Azure Blob Storage in a private container; locally in Azurite, the Blob Storage emulator, started with npx.
   - ToolFleet computes the SHA-256 fingerprint and size on upload and saves them with the release. Files over 50 MB are rejected.
-  - The file is never public. The API hands out download links that expire after 15 minutes, and only to an agent that holds a job for that release.
+  - The file is never public. The API hands out read-only download links that expire after 15 minutes. The website's Download button gets one from `GET /api/firmware/{id}/download`, which will need an engineer sign-in once Entra ID login exists. Agents get theirs only with a claimed job (week 4).
   - Published files are never deleted, so earlier builds remain available.
-- Only the newest release of a model can be rolled out. (done in the UI; the API enforces it from week 3)
+- Only the newest release of a model can be rolled out, and only if its file was uploaded. (done; the API and the UI both enforce it)
 
 ### Staged rollouts (done)
 A rollout targets every tool of the release's model that isn't already on that version.
@@ -93,9 +93,10 @@ A .NET worker service, `ToolFleet.Agent`, one per base. It runs on the workshop 
 - xUnit tests for the rollout state machine and calibration rules, plus API tests through `WebApplicationFactory`. (done)
 - Vitest tests for the Angular screens. (done)
 - Angular frontend: fleet, firmware, rollouts, rollout detail with live progress and field simulator, audit log. (done)
-- Azure DevOps pipeline: restore, build with warnings as errors, test with results published, Angular test and build. (week 3)
-- Deployed to Azure: App Service or Container Apps for the API and site, Azure SQL Database, Azure Storage account for firmware files. (week 3)
-- Tests for the week 3 and 4 work: upload rejects oversized files and records the right fingerprint; claiming a job is atomic; a fingerprint mismatch fails the target; an agent can't claim a tool at another base.
+- Azure DevOps pipeline: restore, build with warnings as errors, test with results and coverage published, Angular test and build, deploy on every push to main. (done)
+- Deployed to Azure: App Service (Linux F1) for the API and site, Azure SQL Database (free offer), an Azure Storage account for firmware files. All reached with the app's managed identity, no passwords or keys. (done)
+- Tests for the week 3 work: upload rejects empty and oversized files, records the right fingerprint, cleans file names, and only the newest build with a file can be rolled out. (done)
+- Tests for the week 4 work: claiming a job is atomic; a fingerprint mismatch fails the target; an agent can't claim a tool at another base.
 
 ## Out of scope for the MVP
 
@@ -118,8 +119,9 @@ These are good "What I'd do next" README items.
 | GET, POST | `/api/tools` | List (filter by model, location, calibration) or register |
 | GET | `/api/tools/{id}` | One tool |
 | POST | `/api/tools/{id}/calibrations` | Record a calibration |
-| GET | `/api/firmware` | List releases, with SHA-256 and size from week 3 |
-| POST | `/api/firmware` | Publish a release; from week 3 a multipart upload with the build file |
+| GET | `/api/firmware` | List releases, with file name, size and SHA-256 |
+| POST | `/api/firmware` | Publish a release: a multipart upload with the build file |
+| GET | `/api/firmware/{id}/download` | A download link for the file that expires after 15 minutes |
 | GET, POST | `/api/rollouts` | List or create (draft) |
 | GET | `/api/rollouts/{id}` | Rollout with targets and progress |
 | POST | `/api/rollouts/{id}/start`, `/promote`, `/abort` | State transitions |
@@ -136,7 +138,7 @@ These are good "What I'd do next" README items.
 | --- | --- | --- |
 | 1 | Domain, API and database locally | Done. All endpoints work; tests pass |
 | 2 | Angular screens and simulator | Done. The demo story runs on localhost |
-| 3 | CI, Azure, and the real firmware file | Azure DevOps runs every test on each push; the app is live on Azure with a demo link; publishing a build uploads the file to Blob Storage (Azurite locally) and shows its SHA-256 |
+| 3 | CI, Azure, and the real firmware file | Done. Azure DevOps runs every test on each push; the app is live on Azure with a demo link; publishing a build uploads the file to Blob Storage (Azurite locally) and shows its SHA-256 |
 | 4 | Field agent and polish | Two agents (Labuan and Miri) on one laptop complete a rollout end to end with no simulator, including a halt; README has a GIF of it, an updated architecture diagram and the CI badge |
 
 Week 3 is the heaviest. If it runs over, finish CI and the live link first and move the upload into week 4, pushing the agent to week 5. Start applying as soon as the live link and green CI exist, whatever week that lands in. They are what gets the application read; the agent is what you talk about in the interview.

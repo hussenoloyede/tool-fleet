@@ -1,13 +1,17 @@
 <div class="page-head">
   <div>
     <h1>Firmware</h1>
-    <p>Publish a build, then roll it out to the tools that need it. Only the newest build of each model can be rolled out.</p>
+    <p>Publish a build with its file, then roll it out to the tools that need it. Only the newest build of each model can be rolled out.</p>
   </div>
 </div>
 
 <div class="layout">
   <section aria-labelledby="releases-heading">
     <h2 id="releases-heading" class="visually-hidden">Releases by model</h2>
+
+    @if (downloadError()) {
+      <p class="error" role="alert">{{ downloadError() }}</p>
+    }
 
     @if (releases.error() || tools.error()) {
       <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
@@ -24,6 +28,7 @@
               <tr>
                 <th scope="col">Version</th>
                 <th scope="col">Notes</th>
+                <th scope="col">File</th>
                 <th scope="col">Published</th>
                 <th scope="col">Tools on it</th>
                 <th scope="col"><span class="visually-hidden">Actions</span></th>
@@ -34,10 +39,32 @@
                 <tr>
                   <td class="code">{{ row.release.version }}</td>
                   <td>{{ row.release.notes || '—' }}</td>
+                  <td class="file">
+                    @if (row.release.file; as f) {
+                      <span class="code">{{ f.fileName }}</span>
+                      <span class="muted file-facts">
+                        {{ formatBytes(f.sizeBytes) }} · SHA-256
+                        <abbr class="code" [title]="f.sha256">{{ f.sha256.slice(0, 12) }}…</abbr>
+                      </span>
+                    } @else {
+                      <span class="muted">No file</span>
+                    }
+                  </td>
                   <td class="nowrap">{{ row.release.publishedAtUtc.slice(0, 10) }}</td>
                   <td>{{ row.onVersion }} of {{ group.toolCount }}</td>
                   <td class="actions">
-                    @if ($first && row.onVersion < group.toolCount) {
+                    @if (row.release.file) {
+                      <button
+                        type="button"
+                        class="btn small"
+                        (click)="download(row.release)"
+                        [disabled]="downloading() === row.release.id"
+                        [attr.aria-label]="'Download ' + group.model + ' ' + row.release.version"
+                      >
+                        {{ downloading() === row.release.id ? 'Getting link…' : 'Download' }}
+                      </button>
+                    }
+                    @if ($first && row.release.file && row.onVersion < group.toolCount) {
                       <a class="btn small" routerLink="/rollouts" [queryParams]="{ release: row.release.id }">
                         Roll out
                       </a>
@@ -77,6 +104,18 @@
       <label class="field">
         Release notes
         <textarea formControlName="notes" rows="3" placeholder="What changed in this build"></textarea>
+      </label>
+
+      <label class="field">
+        Firmware file
+        <input #fileInput type="file" (change)="onFileChosen($event)" />
+        @if (fileError()) {
+          <span class="error">{{ fileError() }}</span>
+        } @else if (file(); as f) {
+          <span class="hint">{{ formatBytes(f.size) }}</span>
+        } @else {
+          <span class="hint">Up to {{ maxSize }}. Its SHA-256 fingerprint is worked out on upload.</span>
+        }
       </label>
 
       @if (publishError()) {
