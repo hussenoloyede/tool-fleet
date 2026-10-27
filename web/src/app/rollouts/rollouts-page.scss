@@ -29,7 +29,8 @@
 
 .empty {
   color: var(--muted);
-  padding: 2rem 1.25rem;
+  padding: 2.5rem 1.25rem;
+  text-align: center;
 }
 
 .panel {
@@ -38,27 +39,14 @@
 
 .intro {
   margin: 0.35rem 0 0;
-  font-size: 0.85rem;
-}
-
-.submit {
-  padding: 0.65rem 1rem;
-  font-family: var(--mono);
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.875rem;
 }
 
 .footnote {
-  margin: 0;
+  margin: -0.5rem 0 0;
   text-align: center;
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  color: var(--dim);
-}
-
-.nowrap {
-  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--muted);
 }
 
 form {
@@ -75,8 +63,9 @@ form {
 .with-unit {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-weight: 400;
+  color: var(--muted);
 
   input {
     width: 100%;
@@ -87,15 +76,13 @@ form {
   background: var(--accent-bg);
   border: 1px solid var(--accent-line);
   border-radius: var(--radius);
-  padding: 0.7rem 0.9rem;
+  padding: 0.75rem 0.9rem;
   font-size: 0.875rem;
+  line-height: 1.5;
 
   p {
     margin: 0;
   }
 }
 
-.hint {
-  margin: 0;
-  font-size: 0.875rem;
-}
+

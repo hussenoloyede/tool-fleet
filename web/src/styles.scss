@@ -1,6 +1,7 @@
 // ToolFleet design system, taken from the Figma Fleet and Firmware pages.
-// Deep navy surfaces, cyan for the one thing that matters on a row, monospace for anything a machine
-// produced (serials, versions, hashes, dates, labels). Green, amber and rose are kept for status only.
+// Deep navy surfaces, cyan for the one thing that matters on a row. Inter for every label and heading;
+// monospace only for values a machine produced (serials, versions, hashes, dates).
+// Green, amber and rose are kept for status only.
 
 :root {
   color-scheme: dark;
@@ -11,6 +12,7 @@
   --surface-2: #141d2e;
   --line: #1d283a;
   --line-strong: #2a3850;
+  --line-hover: #3b4c66;
 
   --ink: #e2e8f0;
   --muted: #94a3b8;
@@ -18,6 +20,7 @@
 
   --accent: #22d3ee;
   --accent-strong: #06b6d4;
+  --accent-hover: #67e8f9;
   --accent-ink: #03141a;
   --accent-bg: rgb(34 211 238 / 0.1);
   --accent-line: rgb(34 211 238 / 0.35);
@@ -28,6 +31,8 @@
   --ok-line: rgb(52 211 153 / 0.35);
   --warn: #fbbf24;
   --warn-fill: #f59e0b;
+  --warn-hover: #fcd34d;
+  --warn-ink: #1c1300;
   --warn-bg: rgb(251 191 36 / 0.08);
   --warn-line: rgb(251 191 36 / 0.4);
   --fail: #fb7185;
@@ -35,12 +40,15 @@
   --fail-bg: rgb(251 113 133 / 0.08);
   --fail-line: rgb(251 113 133 / 0.4);
   --pending-fill: #263247;
+  --hover-bg: rgb(148 163 184 / 0.04);
+  --neutral-bg: rgb(148 163 184 / 0.08);
 
   --focus: #67e8f9;
   --radius: 6px;
   --radius-lg: 12px;
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --ease: 150ms ease;
 
   // Older names still used in a few component styles.
   --paper: var(--bg-raised);
@@ -61,7 +69,7 @@ body {
   margin: 0;
   font-family: var(--font);
   font-size: 0.9375rem;
-  line-height: 1.55;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -72,24 +80,23 @@ h1,
 h2,
 h3 {
   font-family: var(--font);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
 h1 {
-  font-size: 2rem;
-  letter-spacing: -0.025em;
+  font-size: 1.625rem;
+  letter-spacing: -0.02em;
 }
 
 h2 {
-  font-size: 1.2rem;
+  font-size: 1.125rem;
 }
 
 h3 {
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1rem;
 }
 
 a {
@@ -119,11 +126,11 @@ code,
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem 2rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .page-head p {
-  margin: 0.4rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--muted);
   max-width: 46rem;
 }
@@ -131,8 +138,7 @@ code,
 .head-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  padding-top: 0.25rem;
+  gap: 0.5rem;
 }
 
 .panel {
@@ -146,6 +152,13 @@ code,
   border: 0;
   border-top: 1px solid var(--line);
   margin: 1rem 0;
+}
+
+// Heading above a table or block inside a page.
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 .muted {
@@ -164,13 +177,10 @@ code,
   white-space: nowrap;
 }
 
-// Small uppercase monospace label, used for table headers, field labels and card titles.
+// Small label above or beside a value: card titles, filter labels.
 .eyebrow {
-  font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
@@ -180,25 +190,28 @@ code,
   font: inherit;
   font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1.25;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  padding: 0.5rem 0.95rem;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.9rem;
   border-radius: var(--radius);
   border: 1px solid var(--line-strong);
-  background: var(--bg-raised);
+  background: var(--surface-2);
   color: var(--ink);
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
   transition:
-    border-color 120ms ease,
-    background-color 120ms ease;
+    border-color var(--ease),
+    background-color var(--ease),
+    color var(--ease);
 
   &:hover:not(:disabled) {
-    border-color: var(--muted);
-    background: var(--surface-2);
+    border-color: var(--line-hover);
+    background: var(--line);
   }
 
   &:disabled {
@@ -214,27 +227,27 @@ code,
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #22d3ee, var(--accent-strong));
-  border-color: var(--accent-strong);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--accent-ink);
   font-weight: 600;
 
   &:hover:not(:disabled) {
-    background: linear-gradient(180deg, #67e8f9, #22d3ee);
-    border-color: #22d3ee;
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
   }
 }
 
 // Promotion is the one decision a person must make, so it gets amber.
 .btn-approve {
   background: var(--warn);
-  border-color: var(--warn-fill);
-  color: #1c1300;
+  border-color: var(--warn);
+  color: var(--warn-ink);
   font-weight: 600;
 
   &:hover:not(:disabled) {
-    background: #fcd34d;
-    border-color: var(--warn);
+    background: var(--warn-hover);
+    border-color: var(--warn-hover);
   }
 }
 
@@ -250,12 +263,14 @@ code,
 }
 
 .btn.small {
-  padding: 0.3rem 0.65rem;
-  font-size: 0.8rem;
+  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8125rem;
 }
 
 .btn.block {
   width: 100%;
+  min-height: 2.5rem;
 }
 
 // Small inline button that reads as a link.
@@ -286,63 +301,92 @@ code,
 
 // ---- forms ----
 
-.field {
-  display: grid;
-  gap: 0.4rem;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+// One look for every text box and drop-down, in forms and in filter bars.
+%control {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  min-height: 2.25rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-raised);
+  color: var(--ink);
+  min-width: 0;
+  transition:
+    border-color var(--ease),
+    box-shadow var(--ease);
 
-  input,
-  select,
-  textarea {
-    font-family: var(--font);
-    font-size: 0.9rem;
-    font-weight: 400;
-    letter-spacing: normal;
-    text-transform: none;
-    padding: 0.55rem 0.75rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--line-strong);
-    background: var(--bg-raised);
-    color: var(--ink);
-    min-width: 0;
-
-    &::placeholder {
-      color: var(--dim);
-    }
-
-    &:hover {
-      border-color: #3b4c66;
-    }
-  }
-
-  select {
-    appearance: none;
-    padding-right: 2.25rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.7rem center;
-    background-size: 1rem;
-  }
-
-  .hint {
-    font-family: var(--font);
-    font-size: 0.8rem;
-    letter-spacing: normal;
-    text-transform: none;
+  &::placeholder {
     color: var(--dim);
   }
 
-  .error {
-    font-family: var(--font);
-    font-size: 0.8rem;
-    letter-spacing: normal;
-    text-transform: none;
+  &:hover:not(:disabled) {
+    border-color: var(--line-hover);
   }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+%select {
+  @extend %control;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink);
+
+  input:not([type='range']):not([type='file']),
+  textarea {
+    @extend %control;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  input[type='range'] {
+    accent-color: var(--accent);
+  }
+
+  select {
+    @extend %select;
+  }
+
+  .hint {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .error {
+    font-size: 0.8125rem;
+    font-weight: 400;
+  }
+}
+
+// The filter bar on the Fleet page uses the same drop-down.
+.filter select {
+  @extend %select;
 }
 
 // Label on the left, a small note on the right ("x.y.z").
@@ -354,13 +398,13 @@ code,
 
   .req {
     color: var(--accent);
-    margin-left: 0.3rem;
+    margin-left: 0.2rem;
   }
 
   .note {
-    font-size: 0.68rem;
-    letter-spacing: 0.04em;
-    text-transform: none;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 400;
     color: var(--dim);
   }
 }
@@ -377,13 +421,24 @@ code,
 table.data {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.875rem;
 
   th,
   td {
     text-align: left;
-    padding: 0.85rem 1.25rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--line);
     vertical-align: middle;
+  }
+
+  th:first-child,
+  td:first-child {
+    padding-left: 1.25rem;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 1.25rem;
   }
 
   tbody tr:last-child td {
@@ -391,22 +446,19 @@ table.data {
   }
 
   th {
-    font-family: var(--mono);
-    font-size: 0.7rem;
+    font-size: 0.8125rem;
     font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
     color: var(--muted);
     background: var(--bg-raised);
     white-space: nowrap;
   }
 
   tbody tr {
-    transition: background-color 120ms ease;
+    transition: background-color var(--ease);
   }
 
   tbody tr:hover td {
-    background: rgb(148 163 184 / 0.04);
+    background: var(--hover-bg);
   }
 
   tr.row-warn td {
@@ -422,7 +474,7 @@ table.data {
 .code {
   font-family: var(--mono);
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   white-space: nowrap;
 }
 
@@ -430,33 +482,31 @@ table.data {
   display: block;
   font-family: var(--font);
   font-size: 0.75rem;
-  color: var(--dim);
+  color: var(--muted);
   margin-top: 0.1rem;
 }
 
 // ---- chips, tags and pills ----
 
-// Status: a pill with a dot.
+// Status: a rounded pill with a dot.
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.18rem 0.6rem;
+  padding: 0.125rem 0.6rem;
   border-radius: 999px;
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
   white-space: nowrap;
   color: var(--muted);
-  background: rgb(148 163 184 / 0.08);
+  background: var(--neutral-bg);
   border: 1px solid var(--line-strong);
 
   &::before {
     content: '';
-    width: 0.4rem;
-    height: 0.4rem;
+    width: 0.375rem;
+    height: 0.375rem;
     border-radius: 50%;
     background: currentColor;
   }
@@ -486,16 +536,14 @@ table.data {
 // Label: square corners, no dot.
 .tag {
   display: inline-block;
-  padding: 0.12rem 0.45rem;
+  padding: 0.0625rem 0.45rem;
   border-radius: 4px;
-  font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  line-height: 1.5;
   white-space: nowrap;
   color: var(--muted);
-  background: rgb(148 163 184 / 0.08);
+  background: var(--neutral-bg);
   border: 1px solid var(--line-strong);
 
   &.accent {
@@ -518,19 +566,15 @@ table.data {
     background: var(--fail-bg);
     border-color: var(--fail-line);
   }
-  &.plain {
-    text-transform: none;
-    letter-spacing: 0.02em;
-    font-size: 0.75rem;
-  }
 }
 
 // A place name.
 .pill {
   display: inline-block;
-  padding: 0.12rem 0.5rem;
+  padding: 0.0625rem 0.5rem;
   border-radius: 4px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   color: var(--ink);
   background: var(--surface-2);
   border: 1px solid var(--line-strong);
@@ -540,14 +584,15 @@ table.data {
 // A firmware version. Cyan when it is the newest build, grey when the tool is behind.
 .ver {
   display: inline-block;
-  padding: 0.08rem 0.55rem;
+  padding: 0.0625rem 0.5rem;
   border-radius: 999px;
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  line-height: 1.5;
   white-space: nowrap;
   color: var(--muted);
-  background: rgb(148 163 184 / 0.08);
+  background: var(--neutral-bg);
   border: 1px solid var(--line-strong);
 
   &.current {
@@ -557,9 +602,9 @@ table.data {
   }
 
   &.lg {
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    padding: 0.2rem 0.55rem;
+    padding: 0.125rem 0.5rem;
     border-radius: var(--radius);
     color: var(--ink);
   }
@@ -572,23 +617,20 @@ table.data {
 // A status dot on its own, before a heading.
 .dot {
   display: inline-block;
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
   background: var(--dim);
   flex: none;
 
   &.ok {
     background: var(--ok);
-    box-shadow: 0 0 0 3px var(--ok-bg);
   }
   &.live {
     background: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-bg);
   }
   &.warn {
     background: var(--warn);
-    box-shadow: 0 0 0 3px var(--warn-bg);
   }
 }
 
@@ -596,7 +638,7 @@ table.data {
 .meter {
   display: block;
   width: 6rem;
-  height: 0.3rem;
+  height: 0.25rem;
   margin-top: 0.4rem;
   border-radius: 999px;
   background: var(--pending-fill);
@@ -614,16 +656,19 @@ table.data {
   }
 }
 
-// Hazard tape: used only when a rollout has been stopped.
+// Alert shown only when a rollout has been stopped by the failure threshold.
 .hazard {
+  border: 1px solid var(--fail-line);
+  border-left: 4px solid var(--fail-fill);
   border-radius: var(--radius-lg);
-  padding: 5px;
-  background: repeating-linear-gradient(-45deg, var(--safety) 0 14px, #1a1400 14px 28px);
+  background: var(--fail-bg);
 
   > .hazard-body {
-    background: var(--surface);
-    border-radius: 8px;
-    padding: 0.9rem 1.15rem;
+    padding: 1rem 1.25rem;
+  }
+
+  h2 {
+    color: var(--fail);
   }
 }
 

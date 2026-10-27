@@ -1,8 +1,10 @@
 .back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   margin-bottom: 1rem;
-  font-family: var(--mono);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--muted);
   text-decoration: none;
 
@@ -38,8 +40,8 @@
 
   &.awaiting {
     border-color: var(--warn-line);
-    background: linear-gradient(90deg, rgb(251 191 36 / 0.08), transparent 60%), var(--surface);
-    box-shadow: inset 3px 0 0 var(--warn);
+    border-left: 4px solid var(--warn);
+    background: var(--warn-bg);
   }
 }
 
@@ -95,18 +97,12 @@
 
 .tray-label {
   h3 {
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
+    font-size: 0.875rem;
   }
 
   p {
-    margin: 0.3rem 0 0;
-    font-family: var(--mono);
-    font-size: 0.85rem;
+    margin: 0.2rem 0 0;
+    font-size: 0.8125rem;
   }
 }
 
@@ -129,7 +125,7 @@
   padding-bottom: 0.2rem;
   border-radius: 4px;
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   transition: background-color 300ms ease;
 
@@ -139,12 +135,12 @@
   }
 
   &[data-status='Succeeded'] {
-    background: linear-gradient(180deg, #34d399, var(--ok-fill));
+    background: var(--ok-fill);
     color: #022c1e;
   }
 
   &[data-status='Failed'] {
-    background: linear-gradient(180deg, #fb7185, var(--fail-fill));
+    background: var(--fail-fill);
     color: #3b0712;
   }
 }
@@ -199,6 +195,7 @@
 
 // ---- simulator ----
 
+// Dashed border: this is a stand-in for real tools, not part of the product.
 .simulator {
   display: flex;
   background: var(--bg-raised);
@@ -230,22 +227,8 @@
 
 // ---- results table ----
 
-.section-title {
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.6rem;
-}
-
 .reason {
   margin-left: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   color: var(--fail);
-}
-
-.nowrap {
-  white-space: nowrap;
 }

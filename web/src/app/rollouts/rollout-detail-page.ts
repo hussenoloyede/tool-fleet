@@ -10,6 +10,7 @@ import {
   RolloutStage,
   RolloutTarget,
 } from '../api/fleet-api';
+import { Icon } from '../shared/icon';
 import { RolloutStatusChip } from './rollout-status-chip';
 
 const POLL_MS = 2000;
@@ -20,7 +21,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 @Component({
   selector: 'app-rollout-detail-page',
-  imports: [RouterLink, RolloutStatusChip],
+  imports: [RouterLink, RolloutStatusChip, Icon],
   templateUrl: './rollout-detail-page.html',
   styleUrl: './rollout-detail-page.scss',
 })

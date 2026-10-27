@@ -2,10 +2,6 @@
   min-width: 12rem;
 }
 
-.nowrap {
-  white-space: nowrap;
-}
-
 .changes {
   list-style: none;
   margin: 0;
@@ -15,9 +11,8 @@
 }
 
 .field-name {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--dim);
+  font-size: 0.8125rem;
+  color: var(--muted);
   margin-right: 0.5rem;
 }
 
@@ -32,7 +27,8 @@
 
 .empty {
   color: var(--muted);
-  padding: 2rem 1.25rem;
+  padding: 2.5rem 1.25rem;
+  text-align: center;
 }
 
 table.data td {

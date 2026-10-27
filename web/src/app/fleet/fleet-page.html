@@ -15,7 +15,7 @@
     <div class="kpi" data-stat="Total">
       <div class="kpi-head">
         <span class="kpi-title">Total fleet</span>
-        <span class="tag ok plain">{{ models().length }} models</span>
+        <span class="tag ok">{{ models().length }} models</span>
       </div>
       <p class="kpi-value"><span class="stat-value">{{ totalCount() }}</span> tools</p>
       <div class="kpi-foot">
@@ -27,7 +27,7 @@
     <div class="kpi" data-stat="Bases">
       <div class="kpi-head">
         <span class="kpi-title">Field bases</span>
-        <span class="tag accent plain">{{ country() }}</span>
+        <span class="tag accent">{{ country() }}</span>
       </div>
       <p class="kpi-value"><span class="stat-value">{{ locations.hasValue() ? locations.value().length : '–' }}</span> field bases</p>
       <div class="kpi-foot">
@@ -38,7 +38,7 @@
     <div class="kpi warn" data-stat="DueSoon" [class.calm]="dueSoonCount() === 0">
       <div class="kpi-head">
         <span class="kpi-title">Calibration due soon</span>
-        <span class="tag warn plain">Within 30d</span>
+        <span class="tag warn">Within 30d</span>
       </div>
       <p class="kpi-value"><span class="stat-value">{{ dueSoonCount() }}</span> tools</p>
       <div class="kpi-foot">
@@ -56,7 +56,7 @@
     <div class="kpi fail" data-stat="Overdue" [class.calm]="overdueCount() === 0">
       <div class="kpi-head">
         <span class="kpi-title">Calibration overdue</span>
-        <span class="tag fail plain">Action needed</span>
+        <span class="tag fail">Action needed</span>
       </div>
       <p class="kpi-value"><span class="stat-value">{{ overdueCount() }}</span> tools</p>
       <div class="kpi-foot">
@@ -103,7 +103,7 @@
       <option value="Ok">OK</option>
     </select>
   </label>
-  <span class="showing mono">
+  <span class="showing">
     Showing {{ shown() }} of {{ totalCount() }} tools
     @if (filtered()) {
       <button type="button" class="link-btn" (click)="clearFilters()">Clear filters</button>

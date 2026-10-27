@@ -37,12 +37,12 @@
               [class.warn]="!group.rolloutActive && group.toolCount > 0 && group.coverage.percent < 100"
             ></span>
             {{ group.model }}
-            <span class="tag plain">{{ group.toolCount }} tools</span>
+            <span class="tag">{{ group.toolCount }} tools</span>
             @if (group.rolloutActive) {
               <a class="tag accent" routerLink="/rollouts">Rollout in progress</a>
             }
           </h3>
-          <p class="coverage mono">
+          <p class="coverage">
             @if (group.toolCount > 0) {
               On newest build:
               <span [class.full]="group.coverage.percent === 100">
@@ -69,7 +69,7 @@
             <tbody>
               @for (row of group.releases; track row.release.id) {
                 <tr [class.newest]="$first">
-                  <td class="nowrap">
+                  <td class="version">
                     <span class="ver lg" [class.current]="$first">{{ row.release.version }}</span>
                     @if ($first) {
                       @if (group.toolCount > 0 && row.onVersion === group.toolCount) {
@@ -106,13 +106,13 @@
                       @if (row.release.file) {
                         <button
                           type="button"
-                          class="btn small"
+                          class="btn small icon-only"
                           (click)="download(row.release)"
                           [disabled]="downloading() === row.release.id"
                           [attr.aria-label]="'Download ' + group.model + ' ' + row.release.version"
+                          [title]="downloading() === row.release.id ? 'Getting a download link…' : 'Download (link valid 15 minutes)'"
                         >
                           <app-icon name="download" />
-                          {{ downloading() === row.release.id ? 'Getting link…' : 'Download' }}
                         </button>
                       }
                       @if ($first && row.release.file && row.onVersion < group.toolCount && !group.rolloutActive) {
@@ -121,7 +121,7 @@
                         </a>
                       }
                       @if ($first && group.toolCount > 0 && row.onVersion === group.toolCount) {
-                        <span class="dim fully">Fully deployed</span>
+                        <span class="dim fully">Deployed</span>
                       }
                     </span>
                   </td>
@@ -186,7 +186,7 @@
         <p class="error" role="alert">{{ publishError() }}</p>
       }
 
-      <button type="submit" class="btn btn-primary block submit" [disabled]="saving()">
+      <button type="submit" class="btn btn-primary block" [disabled]="saving()">
         <app-icon name="upload" />
         {{ saving() ? 'Publishing…' : 'Publish build' }}
       </button>

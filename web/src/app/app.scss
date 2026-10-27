@@ -5,8 +5,7 @@
 }
 
 .app-bar {
-  background: rgb(10 15 26 / 0.85);
-  backdrop-filter: blur(8px);
+  background: var(--bg);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -16,78 +15,53 @@
 // Lines the bar's content up with the page content below it.
 .bar-inner {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 2.25rem;
+  gap: 0.5rem 2rem;
   max-width: 80rem;
+  min-height: 3.5rem;
   margin: 0 auto;
-  padding: 0.7rem 1.5rem;
+  padding: 0 1.5rem;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
   font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
   color: var(--ink);
   text-decoration: none;
-}
-
-.mark {
-  width: 1.6rem;
-  height: 1.6rem;
   flex: none;
-
-  rect {
-    fill: #0e3a4a;
-    stroke: var(--accent-line);
-  }
-
-  path {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 2.4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
 }
 
 nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
 nav a {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
   color: var(--muted);
   text-decoration: none;
   font-weight: 500;
-  font-size: 0.9rem;
-  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  padding: 0.4rem 0.75rem;
   border-radius: var(--radius);
-  border: 1px solid transparent;
+  transition:
+    color var(--ease),
+    background-color var(--ease);
 
   &:hover {
     color: var(--ink);
+    background: var(--surface);
   }
 
   &.active {
     color: var(--ink);
     background: var(--surface-2);
-    border-color: var(--line-strong);
-
-    &::before {
-      content: '';
-      width: 0.4rem;
-      height: 0.4rem;
-      border-radius: 50%;
-      background: var(--accent);
-    }
   }
 }
 
@@ -95,15 +69,11 @@ nav a {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0.75rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--line-strong);
-  background: var(--bg-raised);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
   color: var(--muted);
+  white-space: nowrap;
+  flex: none;
 
   &::before {
     content: '';
@@ -129,24 +99,45 @@ nav a {
   }
 }
 
+// On a phone: brand and API state on the first line, the nav scrolls sideways underneath.
+@media (max-width: 40rem) {
+  .app-bar .bar-inner {
+    flex-wrap: wrap;
+    padding: 0.6rem 1rem 0;
+  }
+
+  nav {
+    order: 3;
+    flex: 1 0 100%;
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0.25rem 1rem 0.5rem;
+    scrollbar-width: none;
+  }
+}
+
 main {
   flex: 1;
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: 2.25rem 1.5rem 4rem;
+  padding: 2rem 1.5rem 4rem;
+
+  @media (max-width: 40rem) {
+    padding: 1.5rem 1rem 3rem;
+  }
 }
 
 .app-footer {
   border-top: 1px solid var(--line);
-  font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--dim);
 
   .bar-inner {
+    flex-wrap: wrap;
     justify-content: space-between;
-    padding-top: 1.1rem;
-    padding-bottom: 1.1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 
   .links {

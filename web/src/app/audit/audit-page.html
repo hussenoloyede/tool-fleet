@@ -15,7 +15,7 @@
 </div>
 
 @if (entries.error()) {
-  <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+  <p class="error" role="alert">Couldn't reach the API. If the demo has been idle, give it 30 seconds to wake up and refresh.</p>
 } @else if (entries.hasValue()) {
   <div class="table-wrap">
     <table class="data">

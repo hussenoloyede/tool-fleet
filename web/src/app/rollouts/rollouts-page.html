@@ -8,7 +8,7 @@
 <div class="layout">
   <section aria-label="All rollouts">
     @if (rollouts.error()) {
-      <p class="error" role="alert">Couldn't reach the API. Check that it's running on http://localhost:5080.</p>
+      <p class="error" role="alert">Couldn't reach the API. If the demo has been idle, give it 30 seconds to wake up and refresh.</p>
     } @else if (rollouts.hasValue()) {
       <div class="table-wrap">
         <table class="data">
@@ -99,7 +99,7 @@
         <p class="error" role="alert">{{ createError() }}</p>
       }
 
-      <button type="submit" class="btn btn-primary block submit" [disabled]="saving() || preview()?.blocked || preview()?.eligible === 0">
+      <button type="submit" class="btn btn-primary block" [disabled]="saving() || preview()?.blocked || preview()?.eligible === 0">
         {{ saving() ? 'Creating…' : 'Create rollout' }}
       </button>
       <p class="footnote">It starts as a draft. Nothing is flashed until you press Start.</p>
